@@ -1,0 +1,26 @@
+{
+  "tesseract_path": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
+  "navigation": {
+    "trader_button": [1471, 309, 1704, 345],
+    "search_box": [291, 333, 291, 333],
+    "first_search_result": [291, 377, 291, 377]
+  },
+  "scraping": {
+    "template_paths": [
+      "path/to/template_anchor1.png",
+      "path/to/template_anchor2.png"
+    ],
+    "currency_coords": {
+      "want": [50, -30, 150, -10],
+      "have": [200, -30, 300, -10]
+    },
+    "row_relative_coords": [
+      { "ratio": [100, 50, 200, 70], "stock": [210, 50, 300, 70] },
+      { "ratio": [100, 75, 200, 95], "stock": [210, 75, 300, 95] },
+      { "ratio": [100, 100, 200, 120], "stock": [210, 100, 300, 120] },
+      { "ratio": [100, 125, 200, 145], "stock": [210, 125, 300, 145] },
+      { "ratio": [100, 150, 200, 170], "stock": [210, 150, 300, 170] },
+      { "ratio": [100, 175, 200, 195], "stock": [210, 175, 300, 195] }
+    ]
+  }
+}
