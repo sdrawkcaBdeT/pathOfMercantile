@@ -20,11 +20,11 @@
     },
     "currency_want_window": {
       "template": "templates/want_banner.png",
-      "click_zone": [-35,55,275,100]
+      "click_zone": [-35,55,275,50]
     },
     "currency_have_window": {
       "template": "templates/have_banner.png",
-      "click_zone": [-35,45,275,100]
+      "click_zone": [-35,55,275,50]
     },
     "search_box": {
       "template": "templates/search_box_anchor.png",
@@ -33,7 +33,7 @@
     "currency_search_results_region": [980,230,900,950],
     "pre_screenshot_hover_target": {
       "template": "templates/market_ratio_box_text.png",
-      "hover_zone": [-20, 20, 220, 45]
+      "hover_zone": [-20, 0, 220, 45]
     },
     "market_data_anchor": {
       "template": "templates/available_trades.png",

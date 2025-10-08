@@ -99,12 +99,19 @@ def capture_market_data_for_pair(scan_id, currency_want, currency_have):
         print("  [INFO] ALT key down.")
         nav.human_like_delay(0.25, 0.33)
 
-        
-        anchor_location = nav.perform_action_on_template("market_data_anchor", action='hover')
+        # --- FIX IS HERE ---
+        # Find the anchor's location WITHOUT moving the mouse
+        market_anchor_template = config['navigation']['market_data_anchor']['template']
+        print(f"  [INFO] Locating anchor '{market_anchor_template}' without moving mouse...")
+        anchor_location = pyautogui.locateOnScreen(market_anchor_template, confidence=0.8)
+        # -------------------
+
         if not anchor_location:
             pyautogui.keyUp('alt')
             print("  [ERROR] Could not find the primary 'available_trades' anchor. Aborting capture.")
             return
+        
+        print(f"  [SUCCESS] Found anchor at {anchor_location}")
 
         ss_conf = config['navigation']['market_data_anchor']['full_screenshot_zone']
         capture_region = (
@@ -122,8 +129,11 @@ def capture_market_data_for_pair(scan_id, currency_want, currency_have):
         screenshot_path = os.path.join(screenshots_dir, f'{lot_id}.png')
         pyautogui.screenshot(screenshot_path, region=capture_region)
         print(f"  [SUCCESS] Screenshot saved to {screenshot_path}")
-        print(" [INFO] Keeping window up. Like I'm looking at it, or something. ;)")
-        nav.human_like_delay(1.75,4)
+        
+        # This is your custom delay to simulate looking at the screen
+        print("  [INFO] Simulating looking at the data...")
+        nav.human_like_delay(1.75, 4)
+        
         pyautogui.keyUp('alt')
         print("  [INFO] ALT key up.")
         
@@ -152,8 +162,8 @@ if __name__ == '__main__':
 
     capture_market_data_for_pair(
         current_scan_id,
-        currency_want="Chaos Orb",
-        currency_have="Exalted Orb"
+        currency_want="Divine Orb",
+        currency_have="Chaos Orb"
     )
 
     # Save the new scan_id for the next run

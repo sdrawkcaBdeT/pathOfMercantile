@@ -43,12 +43,16 @@ def perform_action_on_template(config_key, action='click', search_region=None, c
             
             print(f"  [ACTION] Clicking '{config_key}' at ({target_x}, {target_y})")
             pyautogui.moveTo(target_x, target_y, duration=get_mouse_speed(), tween=pyautogui.easeOutQuad)
-            human_like_delay(0.15, 0.20)
-            pyautogui.mouseDown()
-            human_like_delay(0.027, 0.035) # Hold the click for a brief, human-like duration
-            pyautogui.mouseUp()
+            human_like_delay(0.55, 0.70)
+            
             if config_key == "trader_npc":
-                pyautogui.click()  # Ensure the click is registered
+                pyautogui.click()  # Ensure the click is registered                
+                pyautogui.click()  # Double click for NPC interaction
+            else:
+                pyautogui.mouseDown()
+                human_like_delay(0.027, 0.035) # Hold the click for a brief, human-like duration
+                pyautogui.mouseUp()
+            
         elif action == 'hover':
             hover_zone_relative = item_config.get('hover_zone')
             if not hover_zone_relative or len(hover_zone_relative) != 4:
