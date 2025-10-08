@@ -36,4 +36,4 @@ def gaussian_random_point_in_rect(rect_x, rect_y, rect_width, rect_height):
 
 def secs_between_keys():
     """Generates a faster, more specific typing interval."""
-    return random_float(0.0127, 0.0227)
+    return random_float(0.0127, 0.0627)

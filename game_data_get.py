@@ -97,8 +97,9 @@ def capture_market_data_for_pair(scan_id, currency_want, currency_have):
     try:
         pyautogui.keyDown('alt')
         print("  [INFO] ALT key down.")
-        nav.human_like_delay(0.3, 0.4)
+        nav.human_like_delay(0.25, 0.33)
 
+        
         anchor_location = nav.perform_action_on_template("market_data_anchor", action='hover')
         if not anchor_location:
             pyautogui.keyUp('alt')
@@ -106,7 +107,12 @@ def capture_market_data_for_pair(scan_id, currency_want, currency_have):
             return
 
         ss_conf = config['navigation']['market_data_anchor']['full_screenshot_zone']
-        capture_region = (anchor_location.left + ss_conf[0], anchor_location.top + ss_conf[1], ss_conf[2], ss_conf[3])
+        capture_region = (
+            int(anchor_location.left + ss_conf[0]),
+            int(anchor_location.top + ss_conf[1]),
+            int(ss_conf[2]),
+            int(ss_conf[3])
+        )
         print(f"  [INFO] Calculated screenshot region: {capture_region}")
         
         screenshots_dir = 'screenshots'
@@ -116,7 +122,8 @@ def capture_market_data_for_pair(scan_id, currency_want, currency_have):
         screenshot_path = os.path.join(screenshots_dir, f'{lot_id}.png')
         pyautogui.screenshot(screenshot_path, region=capture_region)
         print(f"  [SUCCESS] Screenshot saved to {screenshot_path}")
-        
+        print(" [INFO] Keeping window up. Like I'm looking at it, or something. ;)")
+        nav.human_like_delay(1.75,4)
         pyautogui.keyUp('alt')
         print("  [INFO] ALT key up.")
         
@@ -145,8 +152,8 @@ if __name__ == '__main__':
 
     capture_market_data_for_pair(
         current_scan_id,
-        currency_want="Divine Orb",
-        currency_have="Chaos Orb"
+        currency_want="Chaos Orb",
+        currency_have="Exalted Orb"
     )
 
     # Save the new scan_id for the next run

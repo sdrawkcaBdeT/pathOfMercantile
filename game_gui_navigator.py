@@ -43,9 +43,9 @@ def perform_action_on_template(config_key, action='click', search_region=None, c
             
             print(f"  [ACTION] Clicking '{config_key}' at ({target_x}, {target_y})")
             pyautogui.moveTo(target_x, target_y, duration=get_mouse_speed(), tween=pyautogui.easeOutQuad)
-            human_like_delay(0.35, 0.45)
+            human_like_delay(0.15, 0.20)
             pyautogui.mouseDown()
-            human_like_delay(0.05, 0.08) # Hold the click for a brief, human-like duration
+            human_like_delay(0.027, 0.035) # Hold the click for a brief, human-like duration
             pyautogui.mouseUp()
             if config_key == "trader_npc":
                 pyautogui.click()  # Ensure the click is registered
@@ -81,11 +81,24 @@ def find_and_click_currency_template(currency_name):
     
     search_region = config['navigation']['currency_search_results_region']
     location = pyautogui.locateOnScreen(template_path, region=search_region, confidence=0.9)
+    
     if location:
         center = pyautogui.center(location)
         print(f"  [SUCCESS] Found currency '{currency_name}' at {location}.")
         print(f"  [ACTION] Clicking currency at {center}.")
-        pyautogui.click(center)
+
+        # 1. Move to the target with human-like speed
+        pyautogui.moveTo(center, duration=get_mouse_speed(), tween=pyautogui.easeOutQuad)
+        
+        # 2. Perform a more realistic click (down, brief pause, up)
+        pyautogui.mouseDown()
+        human_like_delay(0.05, 0.12)
+        pyautogui.mouseUp()
+        
+        # 3. Add the specific, short delay you requested after the click
+        human_like_delay(0.086, 0.122)
+        # ------------------------------------------
+
         return True
     
     print(f"  [ERROR] Could not find template for currency '{currency_name}'.")
