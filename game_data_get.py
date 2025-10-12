@@ -95,6 +95,8 @@ def capture_market_data_for_pair(scan_id, currency_want, currency_have):
     # Step 4: Capture Screenshot and Metadata
     print("\n[STEP 4/4] Capturing Data...")
     try:
+        # pyautogui.press('alt')
+        nav.human_like_delay(0.024, 0.075)
         pyautogui.keyDown('alt')
         print("  [INFO] ALT key down.")
         nav.human_like_delay(0.25, 0.33)
