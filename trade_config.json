@@ -1,6 +1,6 @@
 {
   "cycle_wait_seconds": 60,
-  "number_of_cycles": 5,
+  "number_of_cycles": 1,
   "trade_sessions": [
     {
       "base_currency": "Exalted Orb",
