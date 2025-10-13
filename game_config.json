@@ -2,10 +2,14 @@
   "tesseract_path": "C:\\Program Files\\Tesseract-OCR\\tesseract.exe",
   "currency_name_templates": {
     "Exalted Orb": "templates/currency_exalted_orb.png",
-    "Chaos Orb": "templates/currency_chaos_orb.png",
     "Divine Orb": "templates/currency_divine_orb.png",
-    "Orb of Alchemy": "templates/currency_orb_of_alchemy.png",
+    "Chaos Orb": "templates/currency_chaos_orb.png",
     "Orb of Annulment": "templates/currency_orb_of_annulment.png",
+    "Hinekora's Lock": "templates/currency_hinekoras_lock.png",
+    "Mirror of Kalandra": "templates/currency_mirror_of_kalandra.png",
+    "Perfect Exalted Orb": "templates/currency_perfect_exalted_orb.png",
+    "Perfect Chaos Orb": "templates/currency_perfect_chaos_orb.png",
+    "Orb of Alchemy": "templates/currency_orb_of_alchemy.png",
     "Vaal Orb": "templates/currency_vaal_orb.png",
     "Orb of Chance": "templates/currency_orb_of_chance.png"
   },

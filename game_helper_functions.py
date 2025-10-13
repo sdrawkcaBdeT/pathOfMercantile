@@ -37,3 +37,36 @@ def gaussian_random_point_in_rect(rect_x, rect_y, rect_width, rect_height):
 def secs_between_keys():
     """Generates a faster, more specific typing interval."""
     return random_float(0.0127, 0.0627)
+
+class ActionFailedException(Exception):
+    """Custom exception to signal a non-recoverable failure in a GUI action."""
+    pass
+
+def retry_action(func, retries=3, delay=0.5, **kwargs):
+    """
+    Attempts to execute a function multiple times, raising an exception on failure.
+
+    Args:
+        func (callable): The function to execute.
+        retries (int): The maximum number of attempts.
+        delay (float): The time in seconds to wait between retries.
+        **kwargs: Keyword arguments to pass to the function.
+
+    Returns:
+        The result of the successful function call.
+
+    Raises:
+        ActionFailedException: If the function fails after all retries.
+    """
+    for attempt in range(retries):
+        try:
+            result = func(**kwargs)
+            if result: # Assumes the function returns a non-False/non-None value on success
+                return result
+            print(f"  [WARN] Attempt {attempt + 1}/{retries} failed for '{func.__name__}'. Retrying...")
+        except Exception as e:
+            print(f"  [WARN] Attempt {attempt + 1}/{retries} for '{func.__name__}' raised an exception: {e}. Retrying...")
+
+        time.sleep(delay)
+
+    raise ActionFailedException(f"Action '{func.__name__}' failed after {retries} attempts.")
