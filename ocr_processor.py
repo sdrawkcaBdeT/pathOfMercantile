@@ -16,7 +16,11 @@ SCREENSHOTS_DIR = 'screenshots'
 PROCESSED_DIR = os.path.join(SCREENSHOTS_DIR, 'processed')
 OUTPUT_CSV = 'market_data.csv'
 TEMPLATE_DIR = 'templates/numbers'
-CONFIDENCE_THRESHOLD = 0.80 # Start with 90%, can be adjusted
+CONFIDENCE_THRESHOLD = 0.80
+
+# --- NEW: Configuration for saving cropped debug images ---
+DEBUG_SAVE_CROPPED_IMAGES = True
+DEBUG_DIR = 'cropped_debug'
 
 # --- HELPER FUNCTIONS ---
 
@@ -44,24 +48,22 @@ def load_templates(template_dir: str):
     """Loads all character templates from the specified directory."""
     templates = {'ratio': {}, 'stock': {}}
     template_files = glob.glob(os.path.join(template_dir, 'template_*.png'))
-    
+
     for f in template_files:
         filename = os.path.basename(f)
         parts = filename.replace('template_', '').replace('.png', '').split('_')
-        
+
         category = parts[0] # 'ratio' or 'stock'
         char_name = parts[1]
-        
-        # Map filenames to the character they represent
+
         char_map = {
             'colon': ':', 'comma': ',', 'decimal': '.', '0': '0', '1': '1',
             '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7',
             '8': '8', '9': '9'
         }
-        
+
         character = char_map.get(char_name)
         if character and category in templates:
-            # Load template image in grayscale for matching
             template_img = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
             if template_img is not None:
                 templates[category][character] = template_img
@@ -76,36 +78,32 @@ def recognize_text_from_templates(cell_image_cv, template_set):
     Finds and reconstructs text in a cell image using template matching.
     """
     cell_gray = cv2.cvtColor(cell_image_cv, cv2.COLOR_BGR2GRAY)
-    
+
     found_chars = []
-    
+
     for char, template_img in template_set.items():
         w, h = template_img.shape[::-1]
-        
         # Perform template matching
         res = cv2.matchTemplate(cell_gray, template_img, cv2.TM_CCOEFF_NORMED)
-        
         # Find all locations where the match is above the threshold
         loc = np.where(res >= CONFIDENCE_THRESHOLD)
-        
-        for pt in zip(*loc[::-1]): # Switch x and y
+        for pt in zip(*loc[::-1]): # Switch columns and rows
             found_chars.append({'char': char, 'x': pt[0]})
 
     if not found_chars:
         return ""
 
-    # Sort the found characters by their x-coordinate to form the string
+    # Sort found characters by their x-coordinate
     found_chars.sort(key=lambda item: item['x'])
-    
-    # De-duplicate characters that are found in the same location (due to slight overlaps)
-    # A simple way is to only add a character if its position is not too close to the last one.
+
+    # Deduplicate characters that are too close together)
     deduped_string = ""
     last_x = -999
     for item in found_chars:
-        if item['x'] > last_x + 2: # Adjust '2' if characters are very close
+        if item['x'] > last_x + 2:
             deduped_string += item['char']
             last_x = item['x']
-            
+
     return deduped_string
 
 # --- CORE WORKER FUNCTION ---
@@ -120,26 +118,40 @@ def process_single_screenshot(screenshot_path: str, ocr_config: dict, templates:
 
     print(f"  [INFO] Processing: {os.path.basename(screenshot_path)}")
     image = cv2.imread(screenshot_path)
-    
+
     extracted_rows = []
-    
+
     for table_name, table_config in ocr_config.items():
         if table_name in ["tesseract_options", "columns"]:
             continue
 
         for i, row_coords in enumerate(table_config['rows']):
             y1, y2 = row_coords['y_start'], row_coords['y_end']
-            
+
             # --- Ratio Processing ---
             ratio_col = ocr_config['columns']['ratio']
             rx1, rx2 = ratio_col['x_start'], ratio_col['x_end']
             ratio_crop_cv = image[y1:y2, rx1:rx2]
-            ratio_text = recognize_text_from_templates(ratio_crop_cv, templates['ratio'])
 
             # --- Stock Processing ---
             stock_col = ocr_config['columns']['stock']
             sx1, sx2 = stock_col['x_start'], stock_col['x_end']
             stock_crop_cv = image[y1:y2, sx1:sx2]
+            
+            # --- Save cropped images if debug mode is on ---
+            if DEBUG_SAVE_CROPPED_IMAGES:
+                # Convert from OpenCV format back to Pillow for saving
+                ratio_img_pil = Image.fromarray(cv2.cvtColor(ratio_crop_cv, cv2.COLOR_BGR2RGB))
+                stock_img_pil = Image.fromarray(cv2.cvtColor(stock_crop_cv, cv2.COLOR_BGR2RGB))
+                
+                lot_id = metadata.get("lot_id", "unknown_lot")
+                ratio_filename = f"{lot_id}_{table_name}_row{i+1}_ratio.png"
+                stock_filename = f"{lot_id}_{table_name}_row{i+1}_stock.png"
+                ratio_img_pil.save(os.path.join(DEBUG_DIR, ratio_filename))
+                stock_img_pil.save(os.path.join(DEBUG_DIR, stock_filename))
+            # ---------------------------------------------------------
+            
+            ratio_text = recognize_text_from_templates(ratio_crop_cv, templates['ratio'])
             stock_text = recognize_text_from_templates(stock_crop_cv, templates['stock'])
 
             ratio = parse_ratio(ratio_text)
@@ -160,6 +172,11 @@ def process_single_screenshot(screenshot_path: str, ocr_config: dict, templates:
 def main():
     print("--- Starting Template Matching Processing ---")
     os.makedirs(PROCESSED_DIR, exist_ok=True)
+    
+    # --- Create debug directory if needed ---
+    if DEBUG_SAVE_CROPPED_IMAGES:
+        os.makedirs(DEBUG_DIR, exist_ok=True)
+        print(f"DEBUG mode is ON. Cropped images will be saved to '{DEBUG_DIR}'")
 
     try:
         with open(OCR_CONFIG_FILE, 'r') as f:
@@ -168,7 +185,6 @@ def main():
         print(f"[FATAL] OCR configuration file '{OCR_CONFIG_FILE}' not found. Aborting.")
         sys.exit(1)
 
-    # Load templates once at the beginning
     templates = load_templates(TEMPLATE_DIR)
     if not templates['ratio'] or not templates['stock']:
         print("[FATAL] No templates were loaded. Check the 'templates/numbers' directory. Aborting.")
@@ -181,7 +197,7 @@ def main():
         return
 
     print(f"Found {len(unprocessed_screenshots)} screenshots to process.")
-    
+
     all_processed_data = []
     files_to_move = []
 
@@ -191,7 +207,7 @@ def main():
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
         futures = {executor.submit(process_single_screenshot, path, ocr_config, templates): path for path in unprocessed_screenshots}
-        
+
         for future in as_completed(futures):
             try:
                 extracted_rows, screenshot_path, metadata_path = future.result()
@@ -207,7 +223,7 @@ def main():
         return
 
     df = pd.DataFrame(all_processed_data)
-    
+
     if os.path.exists(OUTPUT_CSV):
         df.to_csv(OUTPUT_CSV, mode='a', header=False, index=False)
         print(f"Appended {len(df)} new rows to '{OUTPUT_CSV}'")
