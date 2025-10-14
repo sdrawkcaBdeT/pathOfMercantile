@@ -3,6 +3,8 @@ import json
 import time
 import game_gui_navigator as nav
 from game_helper_functions import ActionFailedException
+import pyautogui
+from game_gui_navigator import (human_like_delay)
 
 # --- Config and State Management ---
 STATE_FILE = 'run_state.json'
@@ -40,12 +42,18 @@ if __name__ == '__main__':
         print(f"[FATAL] The configuration file is missing a required key: {e}. Aborting.")
         sys.exit(1)
 
+    pyautogui.hotkey('alt', 'tab')  # Alt-Tab to ensure game focus
+    human_like_delay(0.15, 0.25)
+    
     # --- Main Loop ---
     for cycle_num in range(NUMBER_OF_CYCLES):
         last_id = load_or_initialize_scan_id()
         current_scan_id = last_id + 1
         print(f"\n{'='*60}\n--- STARTING CYCLE {cycle_num + 1}/{NUMBER_OF_CYCLES} | SCAN ID: {current_scan_id} ---\n{'='*60}")
         save_scan_id(current_scan_id)
+        
+        # --- Initialize a counter for this scan cycle ---
+        screenshot_counter = 0
 
         # --- Phase 1: Open Trade Window (Once per cycle) ---
         try:
@@ -85,9 +93,11 @@ if __name__ == '__main__':
                     nav.human_like_delay(0.35, 0.50)
                     nav.capture_market_data(
                         scan_id=current_scan_id,
+                        screenshot_index=screenshot_counter,
                         currency_want=target_currency,
                         currency_have=base_currency
                     )
+                    screenshot_counter += 1
                     print(f"[SUCCESS] Successfully captured data for {target_currency}.")
                 except ActionFailedException as e:
                     print(f"\n[ERROR] Failed to process '{target_currency}'. Reason: {e}")
