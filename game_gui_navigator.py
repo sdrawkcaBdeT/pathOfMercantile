@@ -53,9 +53,14 @@ def _find_and_click(config_key, action='click', search_region=None, confidence=0
         pyautogui.moveTo(target_x, target_y, duration=get_mouse_speed(), tween=pyautogui.easeOutQuad)
         human_like_delay(0.55, 0.70)
 
-        # --- CORRECTED LOGIC: Preserving the special case for the NPC ---
-        if config_key == "trader_npc":
-            pyautogui.click()  # First click to ensure focus/registration
+        # --- Preserving the special case for the NPC ---
+        if config_key == "trader_npc":            
+            random_x_movement = random_int(1,10)
+            random_x_movement_return = random_x_movement - random_int(0,3)
+            random_y_movement = random_int(-3,3)
+            random_y_movement_return = random_y_movement - random_int(-1,1)
+            pyautogui.moveRel(random_x_movement, random_y_movement, duration=get_mouse_speed(), tween=pyautogui.easeOutQuad)
+            pyautogui.moveRel(-random_x_movement_return, -random_y_movement_return, duration=get_mouse_speed(), tween=pyautogui.easeOutQuad)
             pyautogui.click()  # Second click for the actual interaction
             print("  [INFO] Performed special double-click for trader NPC.")
         else:
@@ -124,7 +129,7 @@ def select_currency(currency_name, window_config_key):
     human_like_delay(0.45, 0.75)
     print(f"[SUCCESS] Selected '{currency_name}'.")
 
-def capture_market_data(scan_id, currency_want, currency_have):
+def capture_market_data(scan_id, screenshot_index, currency_want, currency_have):
     """Hovers, presses ALT, finds the anchor, and takes a screenshot."""
     print("\n--- Capturing Market Data ---")
     try:
@@ -159,23 +164,29 @@ def capture_market_data(scan_id, currency_want, currency_have):
         )
         screenshots_dir = 'screenshots'
         os.makedirs(screenshots_dir, exist_ok=True)
-        lot_id = str(uuid.uuid4())
-        screenshot_path = os.path.join(screenshots_dir, f'{lot_id}.png')
+        
+        # --- Generate the sequential filename ---
+        # The :03d formats the number with leading zeros (e.g., 1 -> 001, 10 -> 010)
+        file_basename = f"scan_{scan_id:06d}_{screenshot_index:03d}"
+        
+        screenshot_path = os.path.join(screenshots_dir, f'{file_basename}.png')
         pyautogui.screenshot(screenshot_path, region=capture_region)
         print(f"  [SUCCESS] Screenshot saved to {screenshot_path}")
 
-        human_like_delay(1.75, 3)
+        human_like_delay(1.75, 4)
 
         metadata = {
-            "scan_id": scan_id, "lot_id": lot_id,
+            "scan_id": scan_id,
+            "lot_id": file_basename,
             "timestamp_utc": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
-            "currency_want": currency_want, "currency_have": currency_have,
+            "currency_want": currency_want,
+            "currency_have": currency_have,
             "status": "unprocessed"
         }
-        metadata_path = os.path.join(screenshots_dir, f'{lot_id}.json')
+        metadata_path = os.path.join(screenshots_dir, f'{file_basename}.json')
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
-        print(f"  [SUCCESS] Metadata saved for Lot ID: {lot_id}")
+        print(f"  [SUCCESS] Metadata saved for Lot ID: {file_basename}")
 
     finally:
         pyautogui.keyUp('alt')
