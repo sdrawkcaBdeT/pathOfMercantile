@@ -1,54 +1,30 @@
 import os
 import json
-import pytesseract
 import pandas as pd
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import sys
 import multiprocessing
-from PIL import Image, ImageEnhance
+from PIL import Image
 import cv2
 import numpy as np
+import glob
 
 # --- Configuration ---
 OCR_CONFIG_FILE = 'ocr_config.json'
 SCREENSHOTS_DIR = 'screenshots'
 PROCESSED_DIR = os.path.join(SCREENSHOTS_DIR, 'processed')
 OUTPUT_CSV = 'market_data.csv'
-DEBUG_SAVE_CROPPED_IMAGES = True
-DEBUG_DIR = 'cropped_debug'
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+TEMPLATE_DIR = 'templates/numbers'
+CONFIDENCE_THRESHOLD = 0.80 # Start with 90%, can be adjusted
 
-def preprocess_image(pil_image: Image.Image) -> Image.Image:
-    """
-    This function now acts as a passthrough, returning the original
-    cropped image without any pre-processing to test baseline OCR accuracy.
-    """
-    return pil_image
-
-
-# # Is this better? making it bigger? compare? Does the bigger image give better results on different rows? Can we use both approaches somehow? No preprocessing is pretyt good - this could be an alternative path.
-# def preprocess_image(pil_image: Image.Image) -> Image.Image:
-#     """
-#     This function now only resizes the image, making it larger to improve
-#     Tesseract's accuracy on small, stylized text. No other filtering is applied.
-#     """
-#     # 1. Convert Pillow image to OpenCV format to use its superior resizing
-#     image_cv = np.array(pil_image.convert('RGB'))
-    
-#     # 2. Resize the image to be 3x larger using a high-quality interpolation method
-#     width = int(image_cv.shape[1] * 3)
-#     height = int(image_cv.shape[0] * 3)
-#     resized_image = cv2.resize(image_cv, (width, height), interpolation=cv2.INTER_CUBIC)
-
-#     # 3. Convert back to Pillow image format for Tesseract
-#     return Image.fromarray(resized_image)
+# --- HELPER FUNCTIONS ---
 
 def parse_ratio(text: str) -> float | None:
-    """Safely parses a ratio string into a float."""
     if not text: return None
     try:
-        parts = text.strip().split(':')
+        clean_text = text.strip().replace('<', '').replace('>', '').replace(' ', '')
+        parts = clean_text.split(':')
         value = float(parts[0].replace(',', ''))
         base = float(parts[1].replace(',', '')) if len(parts) > 1 else 1.0
         return value / base if base != 0 else None
@@ -56,17 +32,85 @@ def parse_ratio(text: str) -> float | None:
         return None
 
 def parse_stock(text: str) -> int | None:
-    """Safely parses a stock string into an integer."""
     if not text: return None
     try:
         return int(text.strip().replace(',', ''))
     except (ValueError, AttributeError):
         return None
 
+# --- CUSTOM GLYPH RECOGNITION CORE LOGIC ---
+
+def load_templates(template_dir: str):
+    """Loads all character templates from the specified directory."""
+    templates = {'ratio': {}, 'stock': {}}
+    template_files = glob.glob(os.path.join(template_dir, 'template_*.png'))
+    
+    for f in template_files:
+        filename = os.path.basename(f)
+        parts = filename.replace('template_', '').replace('.png', '').split('_')
+        
+        category = parts[0] # 'ratio' or 'stock'
+        char_name = parts[1]
+        
+        # Map filenames to the character they represent
+        char_map = {
+            'colon': ':', 'comma': ',', 'decimal': '.', '0': '0', '1': '1',
+            '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7',
+            '8': '8', '9': '9'
+        }
+        
+        character = char_map.get(char_name)
+        if character and category in templates:
+            # Load template image in grayscale for matching
+            template_img = cv2.imread(f, cv2.IMREAD_GRAYSCALE)
+            if template_img is not None:
+                templates[category][character] = template_img
+            else:
+                print(f"[WARN] Could not load template image: {filename}")
+
+    print(f"Loaded {len(templates['ratio'])} ratio templates and {len(templates['stock'])} stock templates.")
+    return templates
+
+def recognize_text_from_templates(cell_image_cv, template_set):
+    """
+    Finds and reconstructs text in a cell image using template matching.
+    """
+    cell_gray = cv2.cvtColor(cell_image_cv, cv2.COLOR_BGR2GRAY)
+    
+    found_chars = []
+    
+    for char, template_img in template_set.items():
+        w, h = template_img.shape[::-1]
+        
+        # Perform template matching
+        res = cv2.matchTemplate(cell_gray, template_img, cv2.TM_CCOEFF_NORMED)
+        
+        # Find all locations where the match is above the threshold
+        loc = np.where(res >= CONFIDENCE_THRESHOLD)
+        
+        for pt in zip(*loc[::-1]): # Switch x and y
+            found_chars.append({'char': char, 'x': pt[0]})
+
+    if not found_chars:
+        return ""
+
+    # Sort the found characters by their x-coordinate to form the string
+    found_chars.sort(key=lambda item: item['x'])
+    
+    # De-duplicate characters that are found in the same location (due to slight overlaps)
+    # A simple way is to only add a character if its position is not too close to the last one.
+    deduped_string = ""
+    last_x = -999
+    for item in found_chars:
+        if item['x'] > last_x + 2: # Adjust '2' if characters are very close
+            deduped_string += item['char']
+            last_x = item['x']
+            
+    return deduped_string
+
 # --- CORE WORKER FUNCTION ---
 
-def process_single_screenshot(screenshot_path: str, ocr_config: dict):
-    """Processes one screenshot file, extracting data based on the OCR config."""
+def process_single_screenshot(screenshot_path: str, ocr_config: dict, templates: dict):
     metadata_path = os.path.splitext(screenshot_path)[0] + '.json'
     try:
         with open(metadata_path, 'r') as f:
@@ -75,9 +119,7 @@ def process_single_screenshot(screenshot_path: str, ocr_config: dict):
         return [], None, None
 
     print(f"  [INFO] Processing: {os.path.basename(screenshot_path)}")
-    image = Image.open(screenshot_path)
-    
-    tesseract_config = f"--psm {ocr_config['tesseract_options']['psm']} -c tessedit_char_whitelist='{ocr_config['tesseract_options']['char_whitelist']}'"
+    image = cv2.imread(screenshot_path)
     
     extracted_rows = []
     
@@ -88,32 +130,17 @@ def process_single_screenshot(screenshot_path: str, ocr_config: dict):
         for i, row_coords in enumerate(table_config['rows']):
             y1, y2 = row_coords['y_start'], row_coords['y_end']
             
-            # Crop ratio and stock from the original image
+            # --- Ratio Processing ---
             ratio_col = ocr_config['columns']['ratio']
             rx1, rx2 = ratio_col['x_start'], ratio_col['x_end']
-            ratio_crop = image.crop((rx1, y1, rx2, y2))
-            
+            ratio_crop_cv = image[y1:y2, rx1:rx2]
+            ratio_text = recognize_text_from_templates(ratio_crop_cv, templates['ratio'])
+
+            # --- Stock Processing ---
             stock_col = ocr_config['columns']['stock']
             sx1, sx2 = stock_col['x_start'], stock_col['x_end']
-            stock_crop = image.crop((sx1, y1, sx2, y2))
-
-            # --- MODIFICATION: Pre-process first ---
-            preprocessed_ratio = preprocess_image(ratio_crop)
-            preprocessed_stock = preprocess_image(stock_crop)
-
-            # --- Save the POST-processed images ---
-            if DEBUG_SAVE_CROPPED_IMAGES:
-                lot_id = metadata.get("lot_id", "unknown_lot")
-                ratio_filename = f"{lot_id}_{table_name}_row{i+1}_ratio.png"
-                stock_filename = f"{lot_id}_{table_name}_row{i+1}_stock.png"
-                # Save the black-and-white versions
-                preprocessed_ratio.save(os.path.join(DEBUG_DIR, ratio_filename))
-                preprocessed_stock.save(os.path.join(DEBUG_DIR, stock_filename))
-            # ---------------------------------------------------------
-
-            # Run OCR on the pre-processed images
-            ratio_text = pytesseract.image_to_string(preprocessed_ratio, config=tesseract_config)
-            stock_text = pytesseract.image_to_string(preprocessed_stock, config=tesseract_config)
+            stock_crop_cv = image[y1:y2, sx1:sx2]
+            stock_text = recognize_text_from_templates(stock_crop_cv, templates['stock'])
 
             ratio = parse_ratio(ratio_text)
             stock = parse_stock(stock_text)
@@ -131,17 +158,20 @@ def process_single_screenshot(screenshot_path: str, ocr_config: dict):
 # --- MAIN ORCHESTRATOR ---
 
 def main():
-    print("--- Starting OCR Processing (Parallel Mode) ---")
+    print("--- Starting Template Matching Processing ---")
     os.makedirs(PROCESSED_DIR, exist_ok=True)
-    if DEBUG_SAVE_CROPPED_IMAGES:
-        os.makedirs(DEBUG_DIR, exist_ok=True)
-        print(f"DEBUG mode is ON. Cropped images will be saved to '{DEBUG_DIR}'")
 
     try:
         with open(OCR_CONFIG_FILE, 'r') as f:
             ocr_config = json.load(f)
     except FileNotFoundError:
         print(f"[FATAL] OCR configuration file '{OCR_CONFIG_FILE}' not found. Aborting.")
+        sys.exit(1)
+
+    # Load templates once at the beginning
+    templates = load_templates(TEMPLATE_DIR)
+    if not templates['ratio'] or not templates['stock']:
+        print("[FATAL] No templates were loaded. Check the 'templates/numbers' directory. Aborting.")
         sys.exit(1)
 
     unprocessed_screenshots = [os.path.join(SCREENSHOTS_DIR, f) for f in os.listdir(SCREENSHOTS_DIR) if f.endswith('.png')]
@@ -160,7 +190,7 @@ def main():
     print(f"Using {num_workers} worker processes (out of {num_cores} available cores).")
 
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        futures = {executor.submit(process_single_screenshot, path, ocr_config): path for path in unprocessed_screenshots}
+        futures = {executor.submit(process_single_screenshot, path, ocr_config, templates): path for path in unprocessed_screenshots}
         
         for future in as_completed(futures):
             try:
@@ -184,19 +214,14 @@ def main():
     else:
         df.to_csv(OUTPUT_CSV, index=False)
         print(f"Created '{OUTPUT_CSV}' with {len(df)} rows.")
-    
+
     try:
         print("\n--- Sorting master CSV file ---")
         master_df = pd.read_csv(OUTPUT_CSV)
-        # Convert timestamp to datetime for correct sorting, handling potential errors
         master_df['timestamp_utc'] = pd.to_datetime(master_df['timestamp_utc'], errors='coerce')
-        
         sort_order = ['scan_id', 'timestamp_utc', 'trade_type', 'row_num']
         master_df = master_df.sort_values(by=sort_order, ascending=True)
-        
-        # Convert timestamp back to string format for saving
         master_df['timestamp_utc'] = master_df['timestamp_utc'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        
         master_df.to_csv(OUTPUT_CSV, index=False)
         print(f"Successfully sorted '{OUTPUT_CSV}'.")
     except Exception as e:
@@ -212,8 +237,6 @@ def main():
     print("\n--- OCR Processing Finished ---")
 
 if __name__ == "__main__":
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    
     from multiprocessing import freeze_support
     freeze_support()
     main()
