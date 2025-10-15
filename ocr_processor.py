@@ -16,10 +16,10 @@ SCREENSHOTS_DIR = 'screenshots'
 PROCESSED_DIR = os.path.join(SCREENSHOTS_DIR, 'processed')
 OUTPUT_CSV = 'market_data.csv'
 TEMPLATE_DIR = 'templates/numbers'
-CONFIDENCE_THRESHOLD = 0.80
+CONFIDENCE_THRESHOLD = 0.70
 
-# --- NEW: Configuration for saving cropped debug images ---
-DEBUG_SAVE_CROPPED_IMAGES = True
+# --- Configuration for saving cropped debug images ---
+DEBUG_SAVE_CROPPED_IMAGES = False
 DEBUG_DIR = 'cropped_debug'
 
 # --- HELPER FUNCTIONS ---
@@ -105,6 +105,8 @@ def recognize_text_from_templates(cell_image_cv, template_set):
             last_x = item['x']
 
     return deduped_string
+
+
 
 # --- CORE WORKER FUNCTION ---
 
