@@ -4,7 +4,7 @@
     "char_whitelist": "0123456789.,:"
   },
   "columns": {
-    "ratio": { "x_start": 36, "x_end": 134 },
+    "ratio": { "x_start": 15, "x_end": 134 },
     "stock": { "x_start": 136, "x_end": 241 }
   },
   "available_trades": {
