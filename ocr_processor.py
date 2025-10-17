@@ -19,7 +19,7 @@ TEMPLATE_DIR = 'templates/numbers'
 CONFIDENCE_THRESHOLD = 0.70
 
 # --- Configuration for saving cropped debug images ---
-DEBUG_SAVE_CROPPED_IMAGES = False
+DEBUG_SAVE_CROPPED_IMAGES = True
 DEBUG_DIR = 'cropped_debug'
 
 # --- HELPER FUNCTIONS ---
