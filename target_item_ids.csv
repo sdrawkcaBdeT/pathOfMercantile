@@ -1,0 +1,322 @@
+is_target,name,itemID,apiID,category
+1,Ancient Collarbone,4385,ancient-collarbone,abyss
+1,Ancient Jawbone,4373,ancient-jawbone,abyss
+1,Ancient Rib,4379,ancient-rib,abyss
+1,Atalui's Bloodletting,4595,ataluis-bloodletting,lineagesupportgems
+1,Chaos Orb,287,chaos,currency
+1,Dialla's Desire,4629,diallas-desire,lineagesupportgems
+1,Divine Orb,291,divine,currency
+1,Essence of Horror,383,essence-of-horror,essences
+1,Exalted Orb,290,exalted,currency
+1,Farrul's Rune of the Chase,4043,farruls-rune-of-the-chase,runes
+1,Hinekora's Lock,4287,hinekoras-lock,currency
+1,Omen of Homogenising Exaltation,4311,omen-of-homogenising-exaltation,ritual
+1,Omen of Light,4351,omen-of-light,ritual
+1,Omen of Sinistral Annulment,432,omen-of-sinistral-annulment,ritual
+1,Omen of Whittling,420,omen-of-whittling,ritual
+1,Orb of Annulment,292,annul,currency
+1,Perfect Chaos Orb,4277,perfect-chaos-orb,currency
+1,Perfect Exalted Orb,4285,perfect-exalted-orb,currency
+1,Rakiata's Flow,4643,rakiatas-flow,lineagesupportgems
+1,Runic Splinter,4359,runic-splinter,fragments
+1,Simulacrum Splinter,303,simulacrum-splinter,fragments
+1,Talisman of Sirrius,4077,talisman-of-sirrius,talismans
+1,Orb of Alchemy,286,alch,currency
+1,Orb of Chance,285,chance,currency
+0,Adept Rune,4025,adept-rune,runes
+0,Ahn's Citadel,4659,ahns-citadel,lineagesupportgems
+0,Ailith's Chimes,4607,ailiths-chimes,lineagesupportgems
+0,Amanamu's Gaze,4391,amanamus-gaze,abyss
+0,An Audience with the King,305,an-audience-with-the-king,fragments
+0,Ancient Crisis Fragment,309,ancient-crisis-fragment,fragments
+0,Arakaali's Lust,4671,arakaalis-lust,lineagesupportgems
+0,Arbiter's Ignition,4669,arbiters-ignition,lineagesupportgems
+0,Arcanist's Etcher,298,etcher,currency
+0,Arjun's Medal,4615,arjuns-medal,lineagesupportgems
+0,Armourer's Scrap,296,scrap,currency
+0,Artificer's Orb,293,artificers,currency
+0,Artificer's Shard,281,artificers-shard,currency
+0,Atziri's Allure,4661,atziris-allure,lineagesupportgems
+0,Azmeri Reliquary Key,5131,rite-of-passage,fragments
+0,Bear Talisman,346,bear-talisman,talismans
+0,Blacksmith's Whetstone,297,whetstone,currency
+0,Boar Talisman,349,boar-talisman,talismans
+0,Body Rune,326,body-rune,runes
+0,Breach Splinter,301,breach-splinter,fragments
+0,Breachstone,302,breachstone,fragments
+0,Brutus' Brain,4599,brutus-brain,lineagesupportgems
+0,Cat Talisman,352,cat-talisman,talismans
+0,Chance Shard,279,chance-shard,currency
+0,Countess Seske's Rune of Archery,4061,countess-seskes-rune-of-archery,runes
+0,Courtesan Mannan's Rune of Cruelty,4055,courtesan-mannans-rune-of-cruelty,runes
+0,Cowardly Fate,306,cowardly-fate,fragments
+0,Craiceann's Rune of Recovery,4053,craiceanns-rune-of-recovery,runes
+0,Craiceann's Rune of Warding,4045,craiceanns-rune-of-warding,runes
+0,Currency,4265,sep,currency
+0,Daresso's Passion,4657,daressos-passion,lineagesupportgems
+0,Deadly Fate,307,deadly-fate,fragments
+0,Desert Rune,322,desert-rune,runes
+0,Doedre's Undoing,4611,doedres-undoing,lineagesupportgems
+0,Einhar's Beastrite,4597,einhars-beastrite,lineagesupportgems
+0,Esh's Radiance,4637,eshs-radiance,lineagesupportgems
+0,Essence of Abrasion,4439,essence-of-abrasion,essences
+0,Essence of Alacrity,4449,essence-of-alacrity,essences
+0,Essence of Battle,365,essence-of-battle,essences
+0,Essence of Command,4447,essence-of-command,essences
+0,Essence of Delirium,382,essence-of-delirium,essences
+0,Essence of Electricity,363,essence-of-electricity,essences
+0,Essence of Enhancement,359,essence-of-enhancement,essences
+0,Essence of Flames,361,essence-of-flames,essences
+0,Essence of Grounding,4445,essence-of-grounding,essences
+0,Essence of Haste,367,essence-of-haste,essences
+0,Essence of Hysteria,381,essence-of-hysteria,essences
+0,Essence of Ice,362,essence-of-ice,essences
+0,Essence of Insanity,384,essence-of-insanity,essences
+0,Essence of Insulation,4441,essence-of-insulation,essences
+0,Essence of Opulence,4453,essence-of-opulence,essences
+0,Essence of Ruin,364,essence-of-ruin,essences
+0,Essence of Seeking,4451,essence-of-seeking,essences
+0,Essence of Sorcery,366,essence-of-sorcery,essences
+0,Essence of Thawing,4443,essence-of-thawing,essences
+0,Essence of Torment,360,essence-of-torment,essences
+0,Essence of the Abyss,4509,essence-of-abyss,essences
+0,Essence of the Body,357,essence-of-the-body,essences
+0,Essence of the Infinite,368,essence-of-the-infinite,essences
+0,Essence of the Mind,358,essence-of-the-mind,essences
+0,Faded Crisis Fragment,310,faded-crisis-fragment,fragments
+0,Farrul's Rune of Grace,4041,farruls-rune-of-grace,runes
+0,Farrul's Rune of the Hunt,4051,farruls-rune-of-the-hunt,runes
+0,Fenumus' Rune of Agony,4039,fenumus-rune-of-agony,runes
+0,Fenumus' Rune of Draining,4065,fenumus-rune-of-draining,runes
+0,Fenumus' Rune of Spinning,4059,fenumus-rune-of-spinning,runes
+0,Fox Talisman,355,fox-talisman,talismans
+0,Fracturing Orb,294,fracturing-orb,currency
+0,Garukhan's Resolve,4645,garukhans-resolve,lineagesupportgems
+0,Gemcutter's Prism,300,gcp,currency
+0,Glacial Rune,323,glacial-rune,runes
+0,Glassblower's Bauble,299,bauble,currency
+0,Gnawed Collarbone,4381,gnawed-collarbone,abyss
+0,Gnawed Jawbone,4369,gnawed-jawbone,abyss
+0,Gnawed Rib,4375,gnawed-rib,abyss
+0,Greater Adept Rune,4031,greater-adept-rune,runes
+0,Greater Body Rune,336,greater-body-rune,runes
+0,Greater Chaos Orb,4275,greater-chaos-orb,currency
+0,Greater Desert Rune,332,greater-desert-rune,runes
+0,Greater Essence of Abrasion,4455,greater-essence-of-abrasion,essences
+0,Greater Essence of Alacrity,4465,greater-essence-of-alacrity,essences
+0,Greater Essence of Battle,377,greater-essence-of-battle,essences
+0,Greater Essence of Command,4463,greater-essence-of-command,essences
+0,Greater Essence of Electricity,375,greater-essence-of-electricity,essences
+0,Greater Essence of Enhancement,371,greater-essence-of-enhancement,essences
+0,Greater Essence of Flames,373,greater-essence-of-flames,essences
+0,Greater Essence of Grounding,4461,greater-essence-of-grounding,essences
+0,Greater Essence of Haste,379,greater-essence-of-haste,essences
+0,Greater Essence of Ice,374,greater-essence-of-ice,essences
+0,Greater Essence of Insulation,4457,greater-essence-of-insulation,essences
+0,Greater Essence of Opulence,4469,greater-essence-of-opulence,essences
+0,Greater Essence of Ruin,376,greater-essence-of-ruin,essences
+0,Greater Essence of Seeking,4467,greater-essence-of-seeking,essences
+0,Greater Essence of Sorcery,378,greater-essence-of-sorcery,essences
+0,Greater Essence of Thawing,4459,greater-essence-of-thawing,essences
+0,Greater Essence of Torment,372,greater-essence-of-torment,essences
+0,Greater Essence of the Body,369,greater-essence-of-the-body,essences
+0,Greater Essence of the Infinite,380,greater-essence-of-the-infinite,essences
+0,Greater Essence of the Mind,370,greater-essence-of-the-mind,essences
+0,Greater Exalted Orb,4283,greater-exalted-orb,currency
+0,Greater Glacial Rune,333,greater-glacial-rune,runes
+0,Greater Inspiration Rune,339,greater-inspiration-rune,runes
+0,Greater Iron Rune,335,greater-iron-rune,runes
+0,Greater Jeweller's Orb,4013,greater-jewellers-orb,currency
+0,Greater Mind Rune,337,greater-mind-rune,runes
+0,Greater Orb of Augmentation,4271,greater-orb-of-augmentation,currency
+0,Greater Orb of Transmutation,4267,greater-orb-of-transmutation,currency
+0,Greater Rebirth Rune,338,greater-rebirth-rune,runes
+0,Greater Regal Orb,4279,greater-regal-orb,currency
+0,Greater Resolve Rune,4033,greater-resolve-rune,runes
+0,Greater Robust Rune,4029,greater-robust-rune,runes
+0,Greater Rune of Alacrity,344,greater-rune-of-alacrity,runes
+0,Greater Rune of Leadership,342,greater-rune-of-leadership,runes
+0,Greater Rune of Nobility,345,greater-rune-of-nobility,runes
+0,Greater Rune of Tithing,343,greater-rune-of-tithing,runes
+0,Greater Stone Rune,340,greater-stone-rune,runes
+0,Greater Storm Rune,334,greater-storm-rune,runes
+0,Greater Vision Rune,341,greater-vision-rune,runes
+0,Hedgewitch Assandra's Rune of Wisdom,4035,hedgewitch-assandras-rune-of-wisdom,runes
+0,Idol of Estazunti,4357,idol-of-estazunti,fragments
+0,Inspiration Rune,329,inspiration-rune,runes
+0,Iron Rune,325,iron-rune,runes
+0,Ixchel's Torment,4621,ixchels-torment,lineagesupportgems
+0,Kalisa's Crescendo,4631,kalisas-crescendo,lineagesupportgems
+0,Kaom's Madness,4617,kaoms-madness,lineagesupportgems
+0,Kulemak's Dominion,4633,kulemaks-dominion,lineagesupportgems
+0,Kulemak's Invitation,4361,kulemaks-invitation,fragments
+0,Kulemak's Invitation,4399,abyss-key,abyss
+0,Kurgal's Gaze,4395,kurgals-gaze,abyss
+0,Kurgal's Leash,4665,kurgals-leash,lineagesupportgems
+0,Lady Hestra's Rune of Winter,4069,lady-hestras-rune-of-winter,runes
+0,Lesser Adept Rune,4019,lesser-adept-rune,runes
+0,Lesser Body Rune,316,lesser-body-rune,runes
+0,Lesser Desert Rune,312,lesser-desert-rune,runes
+0,Lesser Essence of Abrasion,4407,lesser-essence-of-abrasion,essences
+0,Lesser Essence of Alacrity,4431,lesser-essence-of-alacrity,essences
+0,Lesser Essence of Battle,4425,lesser-essence-of-battle,essences
+0,Lesser Essence of Command,4423,lesser-essence-of-command,essences
+0,Lesser Essence of Electricity,4417,lesser-essence-of-electricity,essences
+0,Lesser Essence of Enhancement,4405,lesser-essence-of-enhancement,essences
+0,Lesser Essence of Flames,4409,lesser-essence-of-flames,essences
+0,Lesser Essence of Grounding,4419,lesser-essence-of-grounding,essences
+0,Lesser Essence of Haste,4429,lesser-essence-of-haste,essences
+0,Lesser Essence of Ice,4413,lesser-essence-of-ice,essences
+0,Lesser Essence of Insulation,4411,lesser-essence-of-insulation,essences
+0,Lesser Essence of Opulence,4437,lesser-essence-of-opulence,essences
+0,Lesser Essence of Ruin,4421,lesser-essence-of-ruin,essences
+0,Lesser Essence of Seeking,4435,lesser-essence-of-seeking,essences
+0,Lesser Essence of Sorcery,4427,lesser-essence-of-sorcery,essences
+0,Lesser Essence of Thawing,4415,lesser-essence-of-thawing,essences
+0,Lesser Essence of the Body,4401,lesser-essence-of-the-body,essences
+0,Lesser Essence of the Infinite,4433,lesser-essence-of-the-infinite,essences
+0,Lesser Essence of the Mind,4403,lesser-essence-of-the-mind,essences
+0,Lesser Glacial Rune,313,lesser-glacial-rune,runes
+0,Lesser Inspiration Rune,319,lesser-inspiration-rune,runes
+0,Lesser Iron Rune,315,lesser-iron-rune,runes
+0,Lesser Jeweller's Orb,4011,lesser-jewellers-orb,currency
+0,Lesser Mind Rune,317,lesser-mind-rune,runes
+0,Lesser Rebirth Rune,318,lesser-rebirth-rune,runes
+0,Lesser Resolve Rune,4021,lesser-resolve-rune,runes
+0,Lesser Robust Rune,4017,lesser-robust-rune,runes
+0,Lesser Stone Rune,320,lesser-stone-rune,runes
+0,Lesser Storm Rune,314,lesser-storm-rune,runes
+0,Lesser Vision Rune,321,lesser-vision-rune,runes
+0,Mind Rune,327,mind-rune,runes
+0,Mirror of Kalandra,295,mirror,currency
+0,Omen of Abyssal Echoes,4341,omen-of-abyssal-favours,ritual
+0,Omen of Amelioration,419,omen-of-amelioration,ritual
+0,Omen of Answered Prayers,434,omen-of-answered-prayers,ritual
+0,Omen of Bartering,4317,omen-of-bartering,ritual
+0,Omen of Catalysing Exaltation,4339,omen-of-catalysing-exaltation,ritual
+0,Omen of Chance,4329,omen-of-chance,ritual
+0,Omen of Chaotic Monsters,4327,omen-of-chaotic-monsters,ritual
+0,Omen of Chaotic Quantity,4325,omen-of-chaotic-quantity,ritual
+0,Omen of Chaotic Rarity,4323,omen-of-chaotic-rarity,ritual
+0,Omen of Corruption,427,omen-of-corruption,ritual
+0,Omen of Dextral Alchemy,424,omen-of-dextral-alchemy,ritual
+0,Omen of Dextral Annulment,433,omen-of-dextral-annulment,ritual
+0,Omen of Dextral Coronation,426,omen-of-dextral-coronation,ritual
+0,Omen of Dextral Crystallisation,4335,omen-of-dextral-crystallisation,ritual
+0,Omen of Dextral Erasure,422,omen-of-dextral-erasure,ritual
+0,Omen of Dextral Exaltation,430,omen-of-dextral-exaltation,ritual
+0,Omen of Dextral Necromancy,4355,omen-of-dextral-necromancy,ritual
+0,Omen of Gambling,4315,omen-of-gambling,ritual
+0,Omen of Greater Annulment,431,omen-of-greater-annulment,ritual
+0,Omen of Greater Exaltation,428,omen-of-greater-exaltation,ritual
+0,Omen of Homogenising Coronation,4313,omen-of-homogenising-coronation,ritual
+0,Omen of Putrefaction,4349,omen-of-putrefaction,ritual
+0,Omen of Recombination,4319,omen-of-recombination,ritual
+0,Omen of Refreshment,417,omen-of-refreshment,ritual
+0,Omen of Reinforcements,436,omen-of-reinforcements,ritual
+0,Omen of Resurgence,418,omen-of-resurgence,ritual
+0,Omen of Sanctification,4333,omen-of-sanctification,ritual
+0,Omen of Secret Compartments,437,omen-of-secret-compartments,ritual
+0,Omen of Sinistral Alchemy,423,omen-of-sinistral-alchemy,ritual
+0,Omen of Sinistral Coronation,425,omen-of-sinistral-coronation,ritual
+0,Omen of Sinistral Crystallisation,4337,omen-of-sinistral-crystallisation,ritual
+0,Omen of Sinistral Erasure,421,omen-of-sinistral-erasure,ritual
+0,Omen of Sinistral Exaltation,429,omen-of-sinistral-exaltation,ritual
+0,Omen of Sinistral Necromancy,4353,omen-of-sinistral-necromancy,ritual
+0,Omen of the Ancients,4331,omen-of-the-ancients,ritual
+0,Omen of the Blackblooded,4347,omen-of-the-blackblooded,ritual
+0,Omen of the Blessed,4321,omen-of-the-blessed,ritual
+0,Omen of the Hunt,435,omen-of-the-hunt,ritual
+0,Omen of the Liege,4345,omen-of-the-liege,ritual
+0,Omen of the Sovereign,4343,omen-of-the-sovereign,ritual
+0,Orb of Augmentation,284,aug,currency
+0,Orb of Transmutation,283,transmute,currency
+0,Owl Talisman,353,owl-talisman,talismans
+0,Ox Talisman,354,ox-talisman,talismans
+0,Paquate's Pact,4603,paquates-pact,lineagesupportgems
+0,Perfect Essence of Abrasion,4477,perfect-essence-of-abrasion,essences
+0,Perfect Essence of Alacrity,4501,perfect-essence-of-alacrity,essences
+0,Perfect Essence of Battle,4495,perfect-essence-of-battle,essences
+0,Perfect Essence of Command,4493,perfect-essence-of-command,essences
+0,Perfect Essence of Electricity,4487,perfect-essence-of-electricity,essences
+0,Perfect Essence of Enhancement,4475,perfect-essence-of-enhancement,essences
+0,Perfect Essence of Flames,4479,perfect-essence-of-flames,essences
+0,Perfect Essence of Grounding,4489,perfect-essence-of-grounding,essences
+0,Perfect Essence of Haste,4499,perfect-essence-of-haste,essences
+0,Perfect Essence of Ice,4483,perfect-essence-of-ice,essences
+0,Perfect Essence of Insulation,4481,perfect-essence-of-insulation,essences
+0,Perfect Essence of Opulence,4507,perfect-essence-of-opulence,essences
+0,Perfect Essence of Ruin,4491,perfect-essence-of-ruin,essences
+0,Perfect Essence of Seeking,4505,perfect-essence-of-seeking,essences
+0,Perfect Essence of Sorcery,4497,perfect-essence-of-sorcery,essences
+0,Perfect Essence of Thawing,4485,perfect-essence-of-thawing,essences
+0,Perfect Essence of the Body,4471,perfect-essence-of-the-body,essences
+0,Perfect Essence of the Infinite,4503,perfect-essence-of-the-infinite,essences
+0,Perfect Essence of the Mind,4473,perfect-essence-of-the-mind,essences
+0,Perfect Jeweller's Orb,4015,perfect-jewellers-orb,currency
+0,Perfect Orb of Augmentation,4273,perfect-orb-of-augmentation,currency
+0,Perfect Orb of Transmutation,4269,perfect-orb-of-transmutation,currency
+0,Perfect Regal Orb,4281,perfect-regal-orb,currency
+0,Petition Splinter,4309,petition-splinter,ritual
+0,Piety's Mercy,4627,pietys-mercy,lineagesupportgems
+0,Preserved Collarbone,4383,preserved-collarbone,abyss
+0,Preserved Cranium,4387,preserved-cranium,abyss
+0,Preserved Jawbone,4371,preserved-jawbone,abyss
+0,Preserved Rib,4377,preserved-rib,abyss
+0,Preserved Vertebrae,4389,preserved-vertebrae,abyss
+0,Primary Calamity Fragment,4363,primary-calamity-fragment,fragments
+0,Primate Talisman,347,primate-talisman,talismans
+0,Rabbit Talisman,356,rabbit-talisman,talismans
+0,Ratha's Assault,4613,rathas-assault,lineagesupportgems
+0,Rebirth Rune,328,rebirth-rune,runes
+0,Regal Orb,289,regal,currency
+0,Regal Shard,280,regal-shard,currency
+0,Resolve Rune,4027,resolve-rune,runes
+0,Rigwald's Ferocity,4649,rigwalds-ferocity,lineagesupportgems
+0,Robust Rune,4023,robust-rune,runes
+0,Romira's Requital,4623,romiras-requital,lineagesupportgems
+0,Saqawal's Rune of Erosion,4049,saqawals-rune-of-erosion,runes
+0,Saqawal's Rune of Memory,4047,saqawals-rune-of-memory,runes
+0,Saqawal's Rune of the Sky,4037,saqawals-rune-of-the-sky,runes
+0,Scroll of Wisdom,282,wisdom,currency
+0,Secondary Calamity Fragment,4365,secondary-calamity-fragment,fragments
+0,Serpent Talisman,350,serpent-talisman,talismans
+0,Simulacrum,304,simulacrum,fragments
+0,Sione's Temper,4619,siones-temper,lineagesupportgems
+0,Stag Talisman,348,stag-talisman,talismans
+0,Stone Rune,330,stone-rune,runes
+0,Storm Rune,324,storm-rune,runes
+0,Tacati's Ire,4647,tacatis-ire,lineagesupportgems
+0,Talisman of Eeshta,4083,talisman-of-eeshta,talismans
+0,Talisman of Egrin,4085,talisman-of-egrin,talismans
+0,Talisman of Grold,4081,talisman-of-grold,talismans
+0,Talisman of Maxarius,4087,talisman-of-maxarius,talismans
+0,Talisman of Ralakesh,4089,talisman-of-ralakesh,talismans
+0,Talisman of Thruldana,4079,talisman-of-thruldana,talismans
+0,Tawhoa's Tending,4625,tawhoas-tending,lineagesupportgems
+0,Tecrod's Gaze,4393,tecrods-gaze,abyss
+0,Tecrod's Revenge,4609,tecrods-revenge,lineagesupportgems
+0,Tertiary Calamity Fragment,4367,tertiary-calamity-fragment,fragments
+0,Thane Girt's Rune of Wildness,4063,thane-girts-rune-of-wildness,runes
+0,Thane Grannell's Rune of Mastery,4057,thane-grannells-rune-of-mastery,runes
+0,Thane Leld's Rune of Spring,4071,thane-lelds-rune-of-spring,runes
+0,Thane Myrk's Rune of Summer,4067,thane-myrks-rune-of-summer,runes
+0,The Greatwolf's Rune of Claws,4073,the-greatwolfs-rune-of-claws,runes
+0,The Greatwolf's Rune of Willpower,4075,the-greatwolfs-rune-of-willpower,runes
+0,Transmutation Shard,278,transmutation-shard,currency
+0,Tul's Stillness,4639,tuls-stillness,lineagesupportgems
+0,Uhtred's Augury,4655,uhtreds-augury,lineagesupportgems
+0,Uhtred's Exodus,4651,uhtreds-exodus,lineagesupportgems
+0,Uhtred's Omen,4653,uhtreds-omen,lineagesupportgems
+0,Ulaman's Gaze,4397,ulamans-gaze,abyss
+0,Uruk's Smelting,4601,uruks-smelting,lineagesupportgems
+0,Uul-Netol's Embrace,4641,uul-netols-embrace,lineagesupportgems
+0,Vaal Orb,288,vaal,currency
+0,Varashta's Blessing,4667,varashtas-blessing,lineagesupportgems
+0,Victorious Fate,308,victorious-fate,fragments
+0,Vilenta's Propulsion,4605,vilentas-propulsion,lineagesupportgems
+0,Vision Rune,331,vision-rune,runes
+0,Weathered Crisis Fragment,311,weathered-crisis-fragment,fragments
+0,Wolf Talisman,351,wolf-talisman,talismans
+0,Xoph's Pyre,4635,xophs-pyre,lineagesupportgems
+0,Zarokh's Refrain,4663,zarokhs-refrain,lineagesupportgems
