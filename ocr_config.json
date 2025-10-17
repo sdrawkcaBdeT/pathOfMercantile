@@ -1,0 +1,30 @@
+{
+  "tesseract_options": {
+    "psm": 6,
+    "char_whitelist": "0123456789.,:"
+  },
+  "columns": {
+    "ratio": { "x_start": 36, "x_end": 134 },
+    "stock": { "x_start": 136, "x_end": 241 }
+  },
+  "available_trades": {
+    "rows": [
+      { "y_start": 77, "y_end": 111 },
+      { "y_start": 107, "y_end": 141 },
+      { "y_start": 138, "y_end": 172 },
+      { "y_start": 168, "y_end": 203 },
+      { "y_start": 198, "y_end": 232 },
+      { "y_start": 229, "y_end": 263 }
+    ]
+  },
+  "competing_trades": {
+    "rows": [
+      { "y_start": 337, "y_end": 372 },
+      { "y_start": 367, "y_end": 402 },
+      { "y_start": 398, "y_end": 433 },
+      { "y_start": 429, "y_end": 463 },
+      { "y_start": 459, "y_end": 494 },
+      { "y_start": 490, "y_end": 523 }
+    ]
+  }
+}
