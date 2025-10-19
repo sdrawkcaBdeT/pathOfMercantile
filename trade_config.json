@@ -1,6 +1,6 @@
 {
-  "cycle_wait_seconds": 420,
-  "number_of_cycles": 1,
+  "cycle_wait_seconds": 60,
+  "number_of_cycles": 3,
   "trade_sessions": [
     {
       "base_currency": "Divine Orb",
