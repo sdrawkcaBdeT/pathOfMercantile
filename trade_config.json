@@ -1,19 +1,19 @@
 {
-  "cycle_wait_seconds": 420,
+  "cycle_wait_seconds": 60,
   "number_of_cycles": 1,
   "trade_sessions": [
     {
       "base_currency": "Divine Orb",
       "target_currencies": [
-        "Hinekora's Lock",
-        "Mirror of Kalandra",
         "Perfect Exalted Orb",
-        "Perfect Chaos Orb"
+        "Perfect Chaos Orb",
+        "Orb of Annulment"
       ]
     },       
     {
       "base_currency": "Chaos Orb",
       "target_currencies": [
+        "Divine Orb",
         "Orb of Annulment",
         "Perfect Exalted Orb",
         "Perfect Chaos Orb"
