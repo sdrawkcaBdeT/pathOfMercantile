@@ -195,7 +195,7 @@ if __name__ == "__main__":
     
     if local_extractor:
         
-        screenshots_folder = "screenshots/"
+        screenshots_folder = "screenshots/pending"
         master_csv_file = "market_data.csv"
         
         process_all_pngs_in_folder(local_extractor, screenshots_folder, master_csv_file)
