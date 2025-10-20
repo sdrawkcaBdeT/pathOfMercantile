@@ -118,7 +118,7 @@ def select_currency(currency_name, window_config_key):
     """Selects a currency in either the 'want' or 'have' window."""
     print(f"\n--- Selecting '{currency_name}' in '{window_config_key}' ---")
     retry_action(_find_and_click, config_key=window_config_key, action='click')
-    human_like_delay(0.75, 1.75)
+    human_like_delay(0.75, 1.2225)
     retry_action(_find_and_click, config_key="search_box", action='click')
     human_like_delay(0.25, 0.55)
 
@@ -126,7 +126,7 @@ def select_currency(currency_name, window_config_key):
     pyautogui.typewrite(currency_name, interval=secs_between_keys())
 
     retry_action(_find_and_click_currency, currency_name=currency_name)
-    human_like_delay(0.45, 0.75)
+    human_like_delay(0.25, 0.555)
     print(f"[SUCCESS] Selected '{currency_name}'.")
 
 def capture_market_data(scan_id, screenshot_index, currency_want, currency_have):
@@ -162,7 +162,7 @@ def capture_market_data(scan_id, screenshot_index, currency_want, currency_have)
             int(ss_conf[2]),
             int(ss_conf[3])
         )
-        screenshots_dir = 'screenshots'
+        screenshots_dir = 'P:\\pending\\'
         os.makedirs(screenshots_dir, exist_ok=True)
         
         # --- Generate the sequential filename ---
@@ -170,11 +170,6 @@ def capture_market_data(scan_id, screenshot_index, currency_want, currency_have)
         file_basename = f"scan_{scan_id:06d}_{screenshot_index:03d}"
         
         screenshot_path = os.path.join(screenshots_dir, f'{file_basename}.png')
-        pyautogui.screenshot(screenshot_path, region=capture_region)
-        print(f"  [SUCCESS] Screenshot saved to {screenshot_path}")
-
-        human_like_delay(1.75, 4)
-
         metadata = {
             "scan_id": scan_id,
             "lot_id": file_basename,
@@ -187,6 +182,12 @@ def capture_market_data(scan_id, screenshot_index, currency_want, currency_have)
         with open(metadata_path, 'w') as f:
             json.dump(metadata, f, indent=4)
         print(f"  [SUCCESS] Metadata saved for Lot ID: {file_basename}")
+        pyautogui.screenshot(screenshot_path, region=capture_region)
+        print(f"  [SUCCESS] Screenshot saved to {screenshot_path}")
+
+        human_like_delay(1.2, 2.333)
+
+        
 
     finally:
         pyautogui.keyUp('alt')
