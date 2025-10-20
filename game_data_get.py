@@ -7,8 +7,8 @@ import pyautogui
 from game_gui_navigator import (human_like_delay)
 
 # --- Config and State Management ---
-STATE_FILE = 'run_state.json'
-CONFIG_FILE = 'trade_config.json'
+STATE_FILE = 'P:\\run_state.json'
+CONFIG_FILE = 'P:\\trade_config.json'
 
 def load_or_initialize_scan_id():
     """Reads the last scan_id from the state file, or creates it if it doesn't exist."""
@@ -43,7 +43,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     pyautogui.hotkey('alt', 'tab')  # Alt-Tab to ensure game focus
-    human_like_delay(0.15, 0.25)
+    human_like_delay(0.5, 0.7)
     
     # --- Main Loop ---
     for cycle_num in range(NUMBER_OF_CYCLES):

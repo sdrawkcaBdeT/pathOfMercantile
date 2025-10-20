@@ -11,7 +11,20 @@
     "Perfect Chaos Orb": "templates/currency_perfect_chaos_orb.png",
     "Orb of Alchemy": "templates/currency_orb_of_alchemy.png",
     "Vaal Orb": "templates/currency_vaal_orb.png",
-    "Orb of Chance": "templates/currency_orb_of_chance.png"
+    "Orb of Chance": "templates/currency_orb_of_chance.png",
+    "Liquid Disgust": "templates/currency_liquid_disgust.png",
+    "Diluted Liquid Guilt": "templates/currency_diluted_liquid_guilt.png",
+    "Petition Splinter": "templates/currency_petition_splinter.png",
+    "Simulacrum Splinter": "templates/currency_simulacrum_splinter.png",
+    "Omen of Homogenising Exaltation": "templates/currency_omen_of_homogenising_exaltation.png",
+    "Omen of Chance": "templates/currency_omen_of_chance.png",
+    "Omen of Sinistral Annulment": "templates/currency_omen_of_sinistral_annulment.png",
+    "Omen of Dextral Annulment": "templates/currency_omen_of_dextral_annulment.png",
+    "Omen of Light": "templates/currency_omen_of_light.png",
+    "Omen of Sinistral Erasure": "templates/currency_omen_of_sinistral_erasure.png",
+    "Omen of Whittling": "templates/currency_omen_of_whittling.png",
+    "Omen of Dextral Erasure": "templates/currency_omen_of_dextral_erasure.png",
+    "Omen of Sanctification": "templates/currency_omen_of_sanctification.png"
   },
   "navigation": {
     "trader_npc": {
