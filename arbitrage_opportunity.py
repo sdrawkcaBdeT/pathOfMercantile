@@ -10,12 +10,13 @@ from datetime import datetime, timezone # For timestamping alerts
 # --- Configuration Files ---
 DATA_FILE = Path('P:\\market_data.csv')
 OCR_COMPLETE_FILE = Path('P:\\ocr_complete.json')
-# NEW: Alert file for the GUI
 ARBITRAGE_ALERT_FILE = Path('P:\\arbitrage_alert.json')
-# NEW: File storing your currency amounts
 MY_CURRENCY_FILE = Path('my_currency.json')
-# This script's private state file
 LAST_PROCESSED_FILE = Path('last_processed.json')
+# NEW: Gold cost and benchmark configuration
+CURRENCY_GOLD_LOOKUP_FILE = Path('currency_gold_lookup.json')
+BENCHMARK_CURRENCY = "Divine Orb"
+
 
 POLL_INTERVAL_SECONDS = 3 # How often to check for the flag file
 
@@ -59,6 +60,61 @@ def get_latest_complete_scan():
         print(f"Unexpected error reading {OCR_COMPLETE_FILE}: {e}")
         return -1
 
+# --- NEW: Data Loading for Gold and Benchmarks ---
+
+def load_gold_costs(filepath):
+    """Loads the currency-to-gold-cost lookup file."""
+    try:
+        with open(filepath, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"WARNING: Could not load {filepath}. Gold costs will be 0. Error: {e}")
+        return {}
+
+def build_benchmark_rates(graph, currencies, benchmark_currency):
+    """
+    Builds a simple L1 conversion rate table to the benchmark currency.
+    Uses the graph which already stores L1 rates.
+    """
+    print(f"Building benchmark rate table relative to: {benchmark_currency}")
+    rates = {c: 0.0 for c in currencies}
+    if benchmark_currency not in rates:
+        print(f"CRITICAL: Benchmark currency '{benchmark_currency}' not found in market. Cannot rank.")
+        return rates
+        
+    rates[benchmark_currency] = 1.0
+
+    for curr in currencies:
+        if curr == benchmark_currency:
+            continue
+
+        # Try to find a direct BUY (have=curr, want=bench)
+        # This is an 'available_trades' edge
+        buy_edge = graph.get(curr, {}).get(benchmark_currency, {})
+        if buy_edge and buy_edge['type'] == 'buy':
+            # weight = -log(ratio), ratio = bench/curr
+            value = math.exp(-buy_edge['weight']) # value is bench_per_curr
+            rates[curr] = value
+            continue
+
+        # Try to find a direct SELL (have=curr, want=bench)
+        # This is a 'competing_trades' edge
+        sell_edge = graph.get(curr, {}).get(benchmark_currency, {})
+        if sell_edge and sell_edge['type'] == 'sell':
+            # This edge was created from a (have=bench, want=curr) lookup
+            # ratio = curr/bench, weight = log(ratio)
+            ratio = math.exp(sell_edge['weight']) # ratio is curr_per_bench
+            if ratio > 0:
+                value = 1.0 / ratio # value is bench_per_curr
+                rates[curr] = value
+            continue
+            
+    # Report any currencies that couldn't be valued
+    unvalued = [c for c, r in rates.items() if r == 0.0 and c != benchmark_currency]
+    if unvalued:
+        print(f"Warning: Could not find direct L1 conversion to {benchmark_currency} for: {', '.join(unvalued)}")
+        
+    return rates
 
 # --- Data Loading and Market Building (Unchanged) ---
 
@@ -117,7 +173,7 @@ def build_market_and_graph(df):
 
     return graph, market_books, list(all_currencies)
 
-# --- Core Arbitrage Logic (Unchanged, except for simulation functions) ---
+# --- Core Arbitrage Logic (Bellman-Ford Unchanged) ---
 
 def find_candidate_paths_with_bellman_ford(graph, currencies, start_node):
     """Stage 1: The Finder."""
@@ -167,9 +223,13 @@ def find_candidate_paths_with_bellman_ford(graph, currencies, start_node):
                     seen_cycles.add(cycle_key)
     return negative_cycles
 
+# --- Simulation Functions (MODIFIED for Gold Cost) ---
 
 def simulate_buy_step(amount_to_spend_have, book):
-    """Simulates a 'buy' step (available_trades)"""
+    """
+    Simulates a 'buy' step (available_trades).
+    Returns: (total_bought_want, total_cost_have)
+    """
     total_bought_want = 0
     total_cost_have = 0
     for ratio, stock_in_want in book:
@@ -190,7 +250,10 @@ def simulate_buy_step(amount_to_spend_have, book):
     return int(total_bought_want), int(total_cost_have)
 
 def simulate_sell_step(amount_to_sell_want, book):
-    """Simulates a 'sell' step (competing_trades)"""
+    """
+    Simulates a 'sell' step (competing_trades).
+    Returns: (total_proceeds_have, amount_sold_want)
+    """
     total_proceeds_have = 0
     amount_sold_want = 0
     for ratio, stock_in_want in book:
@@ -203,12 +266,18 @@ def simulate_sell_step(amount_to_sell_want, book):
         amount_sold_want += sellable_at_this_level_want
     return int(total_proceeds_have), int(amount_sold_want)
 
-def simulate_path(path, market_books, initial_investment):
-    """Stage 2: The Calculator."""
-    if not path: return 0, ["Empty path provided."]
+def simulate_path(path, market_books, initial_investment, gold_cost_lookup):
+    """
+    Stage 2: The Calculator.
+    MODIFIED: Now accepts gold_cost_lookup and returns (profit, total_gold_cost, log).
+    """
+    if not path: return 0, 0, ["Empty path provided."]
+    
     start_currency = path[0]['have']
     current_currency = start_currency
     current_amount = initial_investment
+    
+    total_gold_cost = 0
     log = []
     path_str = ' -> '.join(d['have'] for d in path) + ' -> ' + path[0]['have']
     log.append(f"--- Simulating Path: {path_str} ---")
@@ -217,10 +286,15 @@ def simulate_path(path, market_books, initial_investment):
     for i, step in enumerate(path):
         if step['have'] != current_currency:
             log.append(f"Error: Path mismatch. Have {current_currency}, but step needs {step['have']}")
-            return 0, log
+            return 0, total_gold_cost, log
         if current_amount <= 0:
             log.append(f"Step {i+1} (FAIL): Amount is zero or negative. Stopping.")
             current_amount = 0; break
+
+        step_gold_cost = 0
+        received_currency = step['want']
+        # Handle nulls from JSON by defaulting to 0
+        gold_per_unit = gold_cost_lookup.get(received_currency, 0) or 0
 
         if step['type'] == 'buy':
             try:
@@ -229,9 +303,13 @@ def simulate_path(path, market_books, initial_investment):
             except KeyError:
                 log.append(f"Step {i+1} (FAIL): No 'available_trades' (Ask) book for {step['have']}->{step['want']}")
                 current_amount = 0; break
+                
             amount_bought, cost = simulate_buy_step(current_amount, book)
-            log.append(f"Step {i+1} (BUY): Spent {cost} {step['have']} to buy {amount_bought} {step['want']}")
-            current_amount = amount_bought; current_currency = step['want']
+            step_gold_cost = gold_per_unit * amount_bought
+            log.append(f"Step {i+1} (BUY): Spent {cost} {step['have']} to buy {amount_bought} {step['want']} (Gold: {step_gold_cost})")
+            current_amount = amount_bought
+            current_currency = step['want']
+            
         elif step['type'] == 'sell':
             try:
                 book = market_books[step['want']][step['have']]['competing_trades']
@@ -239,43 +317,52 @@ def simulate_path(path, market_books, initial_investment):
             except KeyError:
                 log.append(f"Step {i+1} (FAIL): No 'competing_trades' (Bid) book for {step['want']}<-{step['have']}")
                 current_amount = 0; break
+                
             proceeds, amount_sold = simulate_sell_step(current_amount, book)
-            log.append(f"Step {i+1} (SELL): Sold {amount_sold} {step['have']} to get {proceeds} {step['want']}")
-            current_amount = proceeds; current_currency = step['want']
+            step_gold_cost = gold_per_unit * proceeds
+            log.append(f"Step {i+1} (SELL): Sold {amount_sold} {step['have']} to get {proceeds} {step['want']} (Gold: {step_gold_cost})")
+            current_amount = proceeds
+            current_currency = step['want']
+
+        total_gold_cost += step_gold_cost
 
     log.append(f"End: {current_amount} {current_currency}")
     profit = 0
     if current_currency == start_currency:
         profit = current_amount - initial_investment
-        log.append(f"Result: {profit} {start_currency} profit.")
+        log.append(f"Result: {profit} {start_currency} profit (Total Gold Cost: {total_gold_cost}).")
     else:
         log.append(f"Result: Failed to return to start currency. Ended with {current_amount} {current_currency}")
-    return profit, log
+        
+    return profit, total_gold_cost, log
 
 
-# --- MODIFIED: run_analysis function ---
+# --- MODIFIED: run_analysis function (Path 1 Implementation) ---
 def run_analysis(scan_id):
     """
-    Loads data, runs finder and calculator, and WRITES results to alert file.
+    Loads data, runs finder and calculator, ranks all loops,
+    and WRITES the BEST result to alert file.
     """
     print(f"\n--- Analyzing latest data: scan_id {scan_id} ---")
 
     df = load_and_filter_data(DATA_FILE, scan_id)
     if df is None:
         print(f"Failed to load data for scan {scan_id}. Aborting analysis.")
-        # Write a "no data" alert? Or just do nothing? Let's do nothing for now.
-        # write_alert_file(scan_id, False, None) # Optional
         return
 
     graph, market_books, currencies = build_market_and_graph(df)
     if not graph:
         print("Market graph could not be built. Skipping analysis.")
-        # write_alert_file(scan_id, False, None) # Optional
         return
 
     edge_count = sum(len(inner_dict) for inner_dict in graph.values())
     print(f"Loaded {len(currencies)} currencies and {edge_count} L1 trade edges.")
+
+    # --- Load Gold Costs and Benchmark Rates ---
+    gold_cost_lookup = load_gold_costs(CURRENCY_GOLD_LOOKUP_FILE)
+    benchmark_rates = build_benchmark_rates(graph, currencies, BENCHMARK_CURRENCY)
     print("\n" + "="*50 + "\n")
+
 
     print("Stage 1: Finding candidate arbitrage paths with Bellman-Ford...")
     super_source = "SUPER_SOURCE_NODE"
@@ -287,60 +374,122 @@ def run_analysis(scan_id):
     print(f"Found {len(all_candidate_paths)} unique potential arbitrage cycles.")
     print("\n" + "="*50 + "\n")
 
-    print("Stage 2: Simulating paths with full market depth...")
+    print(f"Stage 2: Simulating all paths with full market depth (Benchmark: {BENCHMARK_CURRENCY})...")
 
     # --- Read Starting Investments ---
+    # This will be used to calculate a dynamic, wealth-based investment size.
     try:
         with open(MY_CURRENCY_FILE, 'r') as f:
             starting_investments = json.load(f)
         print(f"Loaded starting investments from {MY_CURRENCY_FILE}")
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Warning: Could not load {MY_CURRENCY_FILE}. Using default investment. Error: {e}")
-        starting_investments = {} # Fallback to default
-    DEFAULT_INVESTMENT = 1000 # Keep a fallback
+        print(f"Warning: Could not load {MY_CURRENCY_FILE}. Using 0 for all balances. Error: {e}")
+        starting_investments = {} # Fallback to empty
+    
+    # Get the amount of benchmark currency (Divine Orbs) to use for conversions
+    divine_stock = starting_investments.get(BENCHMARK_CURRENCY, 0)
+    divines_to_convert = math.floor(divine_stock * 1.00)
+    print(f"Using {divines_to_convert} {BENCHMARK_CURRENCY} (10% of {divine_stock}) as base for non-benchmark loops.")
 
-    profitable_loops_details = [] # Store details for the alert file
+    ranked_loops = [] # Store all profitable loops for ranking
 
     if not all_candidate_paths:
         print("No candidate paths to simulate.")
     else:
         for i, path in enumerate(all_candidate_paths):
             start_currency = path[0]['have']
-            # Get specific investment or use default
-            initial_investment = starting_investments.get(start_currency, DEFAULT_INVESTMENT)
+            
+            # --- Calculate Dynamic Investment based on user's logic ---
+            existing_start_currency_stock = starting_investments.get(start_currency, 0)
+            
+            if start_currency == BENCHMARK_CURRENCY:
+                # If the loop starts with Divine Orbs, just use our existing stock
+                initial_investment = existing_start_currency_stock
+            else:
+                # If it starts with something else (e.g., Exalts):
+                # 1. Get its value relative to Divines
+                value_per_unit = benchmark_rates.get(start_currency, 0.0)
+                if value_per_unit <= 0.0:
+                    print(f"Skipping path for {start_currency}: No benchmark conversion rate found.")
+                    continue # Can't calculate investment, so skip
+                
+                # 2. Convert our "divines_to_convert" into that currency
+                # e.g., (62 Divine) / (0.01 Divine/Exalt) = 6200 Exalt
+                converted_amount = math.floor(divines_to_convert / value_per_unit)
+                
+                # 3. Add our existing stock of that currency
+                # e.g., 6200 + 13 = 6213
+                initial_investment = converted_amount + existing_start_currency_stock
 
-            profit, log = simulate_path(path, market_books, initial_investment)
+            if initial_investment <= 0:
+                print(f"Skipping path for {start_currency}: Calculated investment is 0.")
+                continue # Investment is too small to simulate
+
+            # --- Run new simulation ---
+            profit, total_gold_cost, log = simulate_path(path, market_books, initial_investment, gold_cost_lookup)
+            
             print("\n".join(log)) # Keep printing detailed log to console
             print("-" * 20)
 
             if profit > 0:
-                profitable_loops_details.append({
+                # --- Rank the loop ---
+                value_per_unit = benchmark_rates.get(start_currency, 0.0)
+                if value_per_unit == 0.0:
+                    print(f"Warning: Cannot rank loop for {start_currency}. No benchmark conversion rate found.")
+                    continue
+                
+                profit_in_benchmark = profit * value_per_unit
+                
+                if total_gold_cost > 0:
+                    efficiency = profit_in_benchmark / total_gold_cost
+                    efficiency_per_mil = efficiency * 1_000_000
+                    efficiency_str = f"{efficiency_per_mil:.2f}"
+                else:
+                    # Positive profit for 0 gold cost is infinitely efficient
+                    efficiency = float('inf') 
+                    efficiency_str = "inf"
+
+                # --- MODIFICATION: Update the last log line ---
+                if log: # Make sure log is not empty
+                    log.pop() # Remove the old "Result:" line
+                    new_log_line = f"Result: {profit} {start_currency} profit (Total Gold Cost: {total_gold_cost}, {efficiency_str} DIV/1M gold)"
+                    log.append(new_log_line)
+                # --- END MODIFICATION ---
+
+                path_string = ' -> '.join(d['have'] for d in path) + ' -> ' + path[0]['have']
+                
+                ranked_loops.append({
                     'path': path, # Store the raw path data if needed later
-                    'path_string': ' -> '.join(d['have'] for d in path) + ' -> ' + path[0]['have'],
+                    'path_string': path_string,
                     'start_currency': start_currency,
                     'investment': initial_investment,
                     'profit': profit,
+                    'profit_benchmark': profit_in_benchmark,
+                    'gold_cost': total_gold_cost,
+                    'efficiency': efficiency,
                     'steps': log # Store the full log for the GUI
                 })
 
     print("\n" + "="*50 + "\n")
     print("Arbitrage Scan Complete.")
-    print(f"Found {len(profitable_loops_details)} verified profitable loops.")
+    print(f"Found {len(ranked_loops)} verified profitable loops.")
     print("\n" + "="*50 + "\n")
 
     # --- Write Alert File ---
     best_loop_data = None
-    if profitable_loops_details:
-        # Simple approach: just take the first one found
-        best_loop_data = profitable_loops_details[0]
-        # Optional: Add logic here to select the *best* loop if multiple found
-        # e.g., best_loop_data = max(profitable_loops_details, key=lambda x: x['profit'] / x['investment'])
+    if ranked_loops:
+        # Sort by efficiency, highest first
+        ranked_loops.sort(key=lambda x: x['efficiency'], reverse=True)
+        best_loop_data = ranked_loops[0] # Select the BEST loop
 
         # Print summary of the best loop to console
-        print("--- Best Loop Found ---")
+        print("--- Best Loop Found (Ranked by Efficiency) ---")
         print(f"  Path: {best_loop_data['path_string']}")
         print(f"  Investment: {best_loop_data['investment']} {best_loop_data['start_currency']}")
         print(f"  Profit: {best_loop_data['profit']} {best_loop_data['start_currency']}")
+        print(f"  Profit (Benchmark): {best_loop_data['profit_benchmark']:.4f} {BENCHMARK_CURRENCY}")
+        print(f"  Gold Cost: {best_loop_data['gold_cost']}")
+        print(f"  Efficiency (Profit/Gold): {best_loop_data['efficiency']:.4f}")
         print("-" * 25)
 
     # Prepare data for JSON file
