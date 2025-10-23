@@ -1,6 +1,22 @@
-Timestamp,ScanID,Path,InvestmentCurrency,InvestmentAmount,ProfitCurrency,ProfitAmount
+Timestamp,ScanID,Path,InvestmentCurrency,InvestmentAmount,ProfitCurrency,ProfitAmount,GoldCost,DivPerMillion
 2025-10-19T12:31:13.651378,98,Divine Orb -> Exalted Orb -> Perfect Exalted Orb -> Divine Orb,Divine Orb,12,Divine Orb,4
 2025-10-19T13:21:53.066461,105,Divine Orb -> Exalted Orb -> Perfect Exalted Orb -> Divine Orb,Divine Orb,10,Divine Orb,4
 2025-10-19T19:06:13.979556,108,Chaos Orb -> Diluted Liquid Guilt -> Exalted Orb -> Liquid Disgust -> Chaos Orb,Chaos Orb,155,Chaos Orb,42
 2025-10-19T19:19:09.122779,114,Divine Orb -> Exalted Orb -> Perfect Chaos Orb -> Divine Orb,Divine Orb,12,Divine Orb,3
 2025-10-20T02:42:17.468917,131,Divine Orb -> Exalted Orb -> Perfect Exalted Orb -> Divine Orb,Divine Orb,14,Divine Orb,2
+2025-10-20T23:56:00.332673,140,Divine Orb -> Exalted Orb -> Omen of Light -> Divine Orb,Divine Orb,16,Divine Orb,2
+2025-10-21T01:00:35.660426,141,Orb of Annulment -> Divine Orb -> Exalted Orb -> Orb of Annulment,Orb of Annulment,42,Orb of Annulment,7
+2025-10-21T01:56:48.193695,143,Divine Orb -> Perfect Exalted Orb -> Orb of Annulment -> Divine Orb,Divine Orb,17,Divine Orb,1
+2025-10-21T20:45:42.374027,156,Divine Orb → Exalted Orb → Omen of Light → Divine Orb,Divine Orb,17,Divine Orb,
+2025-10-21T21:33:16.851401,157,Divine Orb → Exalted Orb → Perfect Chaos Orb → Omen of Light → Divine Orb,Divine Orb,12,12.0,6.213473637588624,1730800.0,3.5899431693948602
+2025-10-22T01:18:22.280381,161,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,4,4.0,1.1105431440078037,599760.0,1.8516458983723552
+2025-10-22T20:22:51.299950,166,Divine Orb → Chaos Orb → Simulacrum Splinter → Divine Orb,Divine Orb,5,5.0,0.12049207040490018,27769.0,4.339085685653073
+2025-10-22T20:41:06.431710,168,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,12,12.0,2.06764089310799,1730560.0,1.194781396257853
+2025-10-22T20:55:54.883729,169,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,10,10.0,3.4004725737018138,1597000.0,2.1292877731382682
+2025-10-22T21:45:25.048110,170,Divine Orb → Exalted Orb → Orb of Annulment → Divine Orb,Divine Orb,3,3.0,1.0257527479021071,488320.0,2.100574926077382
+2025-10-22T22:04:49.774926,173,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,5,5.0,1.1479946750730132,786000.0,1.460553021721391
+2025-10-22T22:15:51.106215,176,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,4,4.0,1.029019813052873,622680.0,1.6525660259730086
+2025-10-22T22:24:51.703547,177,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,10,10.0,3.5416073901583083,1576600.0,2.2463575987303743
+2025-10-23T01:12:45.908526,180,Divine Orb → Exalted Orb → Orb of Annulment → Divine Orb,Divine Orb,11,11.0,3.1565783332334565,1791480.0,1.761994738000679
+2025-10-23T02:18:01.906579,184,Divine Orb → Exalted Orb → Orb of Annulment → Divine Orb,Divine Orb,8,8.0,2.023994244005676,1351600.0,1.4974802042066264
+2025-10-23T02:28:05.487663,185,Divine Orb → Exalted Orb → Perfect Exalted Orb → Divine Orb,Divine Orb,9,9.0,3.077608866456142,1497560.0,2.055082177980276

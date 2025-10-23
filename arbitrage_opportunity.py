@@ -24,6 +24,10 @@ ROBUST_RATES_LOG_FILE = Path('robust_rates_log.csv')
 
 BENCHMARK_CURRENCY = "Divine Orb"
 POLL_INTERVAL_SECONDS = 3 # How often to check for the flag file
+# Define the investment fractions to test for optimal sizing
+# 1.0 = 100% of calculated capital
+# INVESTMENT_SCALES = [0.2, 0.4, 0.6, 0.8, 1.0] 
+INVESTMENT_SCALES = [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 
 # --- [ NEW HELPER FUNCTION ] ---
 def append_to_csv(filepath, header, data_row):
@@ -235,7 +239,7 @@ def find_candidate_paths_with_bellman_ford(graph, currencies, start_node):
                 if not cycle or curr != cycle_node: continue
 
                 cycle.reverse()
-                cycle_key = tuple(d['have'] + '->' + d['want'] for d in cycle)
+                cycle_key = tuple(d['have'] + '→' + d['want'] for d in cycle)
                 if cycle_key not in seen_cycles:
                     negative_cycles.append(cycle)
                     seen_cycles.add(cycle_key)
@@ -284,77 +288,97 @@ def simulate_sell_step(amount_to_sell_want, book):
         amount_sold_want += sellable_at_this_level_want
     return int(total_proceeds_have), int(amount_sold_want)
 
-def simulate_path(path, market_books, initial_investment, gold_cost_lookup):
+# --- [ MAJOR REFACTOR: simulate_path ] ---
+def simulate_path(path, market_books, initial_investment, gold_cost_lookup, 
+                  pre_trade_gold_cost=0.0, pre_trade_log_line=None):
     """
-    Stage 2: The Calculator.
-    MODIFIED: Now accepts gold_cost_lookup and returns (profit, total_gold_cost, log).
+    Stage 2: The Portfolio Calculator.
+    Simulates a path by tracking a full portfolio to account for
+    intermediate "dust" currency.
+    Returns: (final_portfolio, total_gold_cost, log)
     """
-    if not path: return 0, 0, ["Empty path provided."]
+    if not path: 
+        return collections.defaultdict(int), 0, ["Empty path provided."]
     
     start_currency = path[0]['have']
-    current_currency = start_currency
-    current_amount = initial_investment
     
-    total_gold_cost = 0.0 # Use float for gold
+    # --- Portfolio Simulation ---
+    portfolio = collections.defaultdict(int)
+    portfolio[start_currency] = initial_investment
+    
+    total_gold_cost = pre_trade_gold_cost # Start with pre-trade cost
     log = []
-    path_str = ' -> '.join(d['have'] for d in path) + ' -> ' + path[0]['have']
+    
+    # Add pre-trade log line if it exists
+    if pre_trade_log_line:
+        log.append(pre_trade_log_line)
+        
+    path_str = ' → '.join(d['have'] for d in path) + ' → ' + path[0]['have']
     log.append(f"PATH | {path_str}")
-    log.append(f"  Start: {current_amount:,} {current_currency}")
+    log.append(f"  Start Portfolio: {initial_investment:,} {start_currency}")
 
     for i, step in enumerate(path):
-        if step['have'] != current_currency:
-            log.append(f"  [ERROR] Path mismatch. Have {current_currency}, but step needs {step['have']}")
-            return 0, total_gold_cost, log
-        if current_amount <= 0:
-            log.append(f"  Step {i+1} (FAIL): Amount is zero or negative. Stopping.")
-            current_amount = 0; break
+        currency_to_spend = step['have']
+        currency_to_receive = step['want']
+        
+        # Get the *entire* amount of the currency we need to spend
+        amount_to_spend = portfolio[currency_to_spend]
+        
+        if amount_to_spend <= 0:
+            log.append(f"  Step {i+1} (FAIL): No {currency_to_spend} in portfolio to spend. Stopping.")
+            break # Stop simulation if we have no currency for this step
 
         step_gold_cost = 0.0
-        received_currency = step['want']
-        gold_per_unit = gold_cost_lookup.get(received_currency, 0) or 0
+        gold_per_unit = gold_cost_lookup.get(currency_to_receive, 0) or 0
+        
+        amount_received = 0
+        amount_cost = 0
 
         if step['type'] == 'buy':
             try:
-                book = market_books[step['have']][step['want']]['available_trades']
+                book = market_books[currency_to_spend][currency_to_receive]['available_trades']
                 if not book: raise KeyError
             except KeyError:
-                log.append(f"  Step {i+1} (FAIL): No 'available_trades' (Ask) book for {step['have']}->{step['want']}")
-                current_amount = 0; break
+                log.append(f"  Step {i+1} (FAIL): No 'available_trades' (Ask) book for {currency_to_spend}→{currency_to_receive}")
+                break
                 
-            amount_bought, cost = simulate_buy_step(current_amount, book)
-            step_gold_cost = gold_per_unit * amount_bought
-            log.append(f"  Step {i+1} (BUY): Spent {cost:,} {step['have']} → {amount_bought:,} {step['want']} ({step_gold_cost:,.0f}g)")
-            current_amount = amount_bought
-            current_currency = step['want']
+            amount_received, amount_cost = simulate_buy_step(amount_to_spend, book)
+            step_gold_cost = gold_per_unit * amount_received
+            log.append(f"  Step {i+1} (BUY): Spent {amount_cost:,} {currency_to_spend} → {amount_received:,} {currency_to_receive} ({step_gold_cost:,.0f}g)")
             
         elif step['type'] == 'sell':
             try:
-                book = market_books[step['want']][step['have']]['competing_trades']
+                book = market_books[currency_to_receive][currency_to_spend]['competing_trades']
                 if not book: raise KeyError
             except KeyError:
-                log.append(f"  Step {i+1} (FAIL): No 'competing_trades' (Bid) book for {step['want']}<-{step['have']}")
-                current_amount = 0; break
+                log.append(f"  Step {i+1} (FAIL): No 'competing_trades' (Bid) book for {currency_to_receive}<-{currency_to_spend}")
+                break
                 
-            proceeds, amount_sold = simulate_sell_step(current_amount, book)
-            step_gold_cost = gold_per_unit * proceeds
-            log.append(f"  Step {i+1} (SELL): Sold {amount_sold:,} {step['have']} → {proceeds:,} {step['want']} ({step_gold_cost:,.0f}g)")
-            current_amount = proceeds
-            current_currency = step['want']
+            amount_received, amount_cost = simulate_sell_step(amount_to_spend, book)
+            step_gold_cost = gold_per_unit * amount_received
+            log.append(f"  Step {i+1} (SELL): Sold {amount_cost:,} {currency_to_spend} → {amount_received:,} {currency_to_receive} ({step_gold_cost:,.0f}g)")
 
+        # --- Update Portfolio (The Core "Dust" Fix) ---
+        portfolio[currency_to_spend] -= amount_cost     # Subtract what was spent
+        portfolio[currency_to_receive] += amount_received # Add what was received
+        # ---
+        
         total_gold_cost += step_gold_cost
 
-    log.append(f"  End: {current_amount:,} {current_currency}")
-    profit = 0
-    if current_currency == start_currency:
-        profit = current_amount - initial_investment
-        log.append(f"  Result: {profit:+,} {start_currency} profit ({total_gold_cost:,.0f}g).")
-    else:
-        log.append(f"  Result: Failed to return to start currency. Ended with {current_amount:,} {current_currency}")
+    # Log the final state of the portfolio
+    log.append("  --- Final Portfolio ---")
+    for currency, amount in portfolio.items():
+        if amount > 0:
+            log.append(f"  {currency}: {amount:,}")
+    log.append("  -----------------------")
         
-    return profit, total_gold_cost, log
+    # Return the entire portfolio, cost, and log
+    # Profit is now calculated in run_analysis
+    return portfolio, total_gold_cost, log
+# --- [ END REFACTOR ] ---
 
 
-# --- MODIFIED: run_analysis function (Path 1.75 + Logging + Pretty Print) ---
+# --- [ MAJOR REFACTOR: run_analysis ] ---
 def run_analysis(scan_id):
     """
     Loads data, runs finder and calculator, ranks all loops,
@@ -386,7 +410,6 @@ def run_analysis(scan_id):
     # --- 2. Build Rates & Log Them ---
     robust_rates = build_robust_benchmark_rates(market_books, currencies, BENCHMARK_CURRENCY)
     
-    # --- [ NEW LOGGING ] ---
     print(f" [INFO] Logging {len(robust_rates)} robust rates to {ROBUST_RATES_LOG_FILE}...")
     ts = datetime.now(timezone.utc).isoformat()
     rates_header = ["timestamp", "scan_id", "currency", "value_in_benchmark", "benchmark_currency"]
@@ -394,7 +417,6 @@ def run_analysis(scan_id):
         if rate > 0: # Only log currencies we could value
             row = [ts, scan_id, currency, rate, BENCHMARK_CURRENCY]
             append_to_csv(ROBUST_RATES_LOG_FILE, rates_header, row)
-    # --- [ END NEW LOGGING ] ---
 
     # --- 3. Find Candidate Paths ---
     print("\n[PHASE 2: FIND CANDIDATE LOOPS (Bellman-Ford)]")
@@ -417,7 +439,7 @@ def run_analysis(scan_id):
         starting_investments = {} # Fallback to empty
     
     divine_stock = starting_investments.get(BENCHMARK_CURRENCY, 0)
-    divines_to_convert = math.floor(divine_stock * .75)
+    divines_to_convert = math.floor(divine_stock * 0.75) # Using 75% as in your script
     print(f" [INFO] Using {divines_to_convert:,} {BENCHMARK_CURRENCY} (75% of {divine_stock:,}) as base for pre-trades.")
 
     ranked_loops = [] # Store all profitable loops for ranking
@@ -428,76 +450,157 @@ def run_analysis(scan_id):
         for i, path in enumerate(all_candidate_paths):
             start_currency = path[0]['have']
             print("\n" + "-"*60)
-            print(f"Simulating Path {i+1}/{len(all_candidate_paths)}: {' -> '.join(d['have'] for d in path)} -> {start_currency}")
+            print(f"Simulating Path {i+1}/{len(all_candidate_paths)}: {' → '.join(d['have'] for d in path)} → {start_currency}")
             
-            existing_start_currency_stock = starting_investments.get(start_currency, 0)
+            # This list will hold the results for each scale (20%, 40%, etc.)
+            path_scale_results = []
             
-            if start_currency == BENCHMARK_CURRENCY:
-                initial_investment = existing_start_currency_stock
-                print(f" [CALC] Loop starts with benchmark. Using existing stock: {initial_investment:,} {start_currency}")
-            else:
-                converted_amount = 0
-                try:
-                    buy_book = market_books[BENCHMARK_CURRENCY][start_currency]['available_trades']
-                    if not buy_book:
-                        print(f" [SKIP] No 'available_trades' book for {BENCHMARK_CURRENCY}->{start_currency}")
-                        continue
-                    
-                    converted_amount, cost = simulate_buy_step(divines_to_convert, buy_book)
-                    print(f" [CALC] Pre-trade sim: {cost:,} {BENCHMARK_CURRENCY} -> {converted_amount:,} {start_currency}")
-
-                except KeyError:
-                    print(f" [SKIP] No market book for {BENCHMARK_CURRENCY}->{start_currency}")
-                    continue
+            # --- NEW INNER LOOP: Iterate over each investment scale ---
+            for scale in INVESTMENT_SCALES:
+                print(f"  --- Testing Scale: {scale*100:.0f}% ---")
                 
-                initial_investment = converted_amount + existing_start_currency_stock
-                print(f" [CALC] Total Investment: {converted_amount:,} (converted) + {existing_start_currency_stock:,} (existing) = {initial_investment:,} {start_currency}")
-
-            if initial_investment <= 0:
-                print(" [SKIP] Calculated investment is 0.")
-                continue
-
-            profit, total_gold_cost, log = simulate_path(path, market_books, initial_investment, gold_cost_lookup)
-            
-            # Print the detailed log from the simulation
-            print("\n".join(log))
-
-            if profit > 0:
-                value_per_unit = robust_rates.get(start_currency, 0.0)
-                if value_per_unit == 0.0:
-                    print(" [WARN] Cannot rank loop. No robust benchmark rate found.")
-                    continue
+                existing_start_currency_stock = starting_investments.get(start_currency, 0)
                 
-                profit_in_benchmark = profit * value_per_unit
+                # --- New variables for portfolio logic ---
+                test_investment = 0          # The amount of start_currency we begin the sim with
+                test_initial_benchmark_value = 0.0   # The benchmark value of our starting capital
+                test_pre_trade_gold_cost = 0.0
+                test_pre_trade_log_line = None
                 
-                if total_gold_cost > 0:
-                    efficiency = profit_in_benchmark / total_gold_cost
-                    efficiency_per_mil = efficiency * 1_000_000
-                    efficiency_str = f"{efficiency_per_mil:,.2f}"
+                # --- Calculate scaled investment values ---
+                if start_currency == BENCHMARK_CURRENCY:
+                    # Scale our existing benchmark stock
+                    test_investment = math.floor(existing_start_currency_stock * scale)
+                    # Handle potential zero rate safely
+                    test_initial_benchmark_value = test_investment * robust_rates.get(BENCHMARK_CURRENCY, 1.0) 
+                    print(f"  [CALC] Loop starts with benchmark. Using {scale*100:.0f}% of existing stock: {test_investment:,} {start_currency}")
+                
                 else:
-                    efficiency = float('inf') 
-                    efficiency_str = "inf"
+                    # Scale both conversion amount and existing stock
+                    scaled_divines_to_convert = math.floor(divines_to_convert * scale)
+                    scaled_existing_stock_to_use = math.floor(existing_start_currency_stock * scale)
+                    
+                    converted_amount = 0
+                    cost_of_conversion = 0
+                    
+                    if scaled_divines_to_convert > 0:
+                        try:
+                            buy_book = market_books[BENCHMARK_CURRENCY][start_currency]['available_trades']
+                            if not buy_book:
+                                print(f"  [SKIP] No 'available_trades' book for {BENCHMARK_CURRENCY}→{start_currency}")
+                                continue # Skip this scale if no pre-trade book
+                            
+                            converted_amount, cost_of_conversion = simulate_buy_step(scaled_divines_to_convert, buy_book)
+                            
+                            # Calculate pre-trade gold cost
+                            gold_per_unit = gold_cost_lookup.get(start_currency, 0) or 0
+                            test_pre_trade_gold_cost = gold_per_unit * converted_amount
+                            test_pre_trade_log_line = f"  Pre-Trade ({scale*100:.0f}%): Spent {cost_of_conversion:,} {BENCHMARK_CURRENCY} → {converted_amount:,} {start_currency} ({test_pre_trade_gold_cost:,.0f}g)"
+                            print(test_pre_trade_log_line)
 
-                if log: # Update the last log line with efficiency
-                    log.pop()
-                    new_log_line = f"  Result: {profit:+,} {start_currency} profit (Gold: {total_gold_cost:,.0f}, {efficiency_str} DIV/1M gold)"
-                    log.append(new_log_line)
-                    print(new_log_line) # Print the updated final line
+                        except KeyError:
+                            print(f"  [SKIP] No market book for {BENCHMARK_CURRENCY}→{start_currency}")
+                            continue # Skip this scale
+                    else:
+                         print(f"  [CALC] Scaled divines to convert is 0. Using existing stock only.")
+                    
+                    # Total investment is what we converted + what we already had (scaled)
+                    test_investment = converted_amount + scaled_existing_stock_to_use
+                    
+                    # The *value* of our investment is the cost of conversion + value of existing stock (scaled)
+                    # Handle potential zero rate safely
+                    existing_stock_value = scaled_existing_stock_to_use * robust_rates.get(start_currency, 0.0) 
+                    test_initial_benchmark_value = cost_of_conversion + existing_stock_value
+                    
+                    print(f"  [CALC] Total Investment: {converted_amount:,} (converted) + {scaled_existing_stock_to_use:,} (existing) = {test_investment:,} {start_currency}")
+                    print(f"  [CALC] Initial Value: {cost_of_conversion:,} (spent) + {existing_stock_value:,.2f} (existing) = {test_initial_benchmark_value:,.2f} {BENCHMARK_CURRENCY}")
+
+
+                if test_investment <= 0:
+                    print("  [SKIP] Calculated investment for this scale is 0.")
+                    continue # Skip this scale
+
+                # --- Call Refactored simulate_path ---
+                final_portfolio, total_gold_cost, log = simulate_path(
+                    path, market_books, test_investment, gold_cost_lookup, 
+                    test_pre_trade_gold_cost, test_pre_trade_log_line
+                )
                 
-                path_string = ' -> '.join(d['have'] for d in path) + ' -> ' + path[0]['have']
+                # --- New Profit Calculation ---
+                final_benchmark_value = 0.0
+                for currency, amount in final_portfolio.items():
+                    if amount > 0:
+                        # Handle potential zero rate safely
+                        final_benchmark_value += amount * robust_rates.get(currency, 0.0) 
                 
-                ranked_loops.append({
+                profit_in_benchmark = final_benchmark_value - test_initial_benchmark_value
+                
+                # --- Store results for this scale ---
+                efficiency_per_mil = 0.0
+                if profit_in_benchmark > 0:
+                    if total_gold_cost > 0:
+                        efficiency = profit_in_benchmark / total_gold_cost
+                        efficiency_per_mil = efficiency * 1_000_000
+                    else:
+                        efficiency_per_mil = float('inf') # Positive profit, 0 cost
+                # If profit is negative or zero, efficiency remains 0.0
+
+                # Add the final result line to the log
+                efficiency_str = f"{efficiency_per_mil:,.2f}" if efficiency_per_mil != float('inf') else "inf"
+                result_line = f"  Result ({scale*100:.0f}%): {profit_in_benchmark:+,} {BENCHMARK_CURRENCY} profit (Gold: {total_gold_cost:,.0f}, {efficiency_str} DIV/1M gold)"
+                log.append(result_line)
+                
+                # Print log for this scale
+                print("\n".join(log))
+                print(f"  Initial Value: {test_initial_benchmark_value:,.2f} {BENCHMARK_CURRENCY}")
+                print(f"  Final Value:   {final_benchmark_value:,.2f} {BENCHMARK_CURRENCY}")
+                print(result_line)
+
+                path_string = ' → '.join(d['have'] for d in path) + ' → ' + path[0]['have']
+                
+                # Store all results for this scale, even if not profitable yet
+                path_scale_results.append({
+                    'scale': scale,
                     'path': path,
                     'path_string': path_string,
                     'start_currency': start_currency,
-                    'investment': initial_investment,
-                    'profit': profit,
+                    'investment': test_investment, # This is the raw amount of start_currency
+                    'investment_benchmark': test_initial_benchmark_value, # This is the DIV value
+                    'profit': None, # Raw profit is no longer a simple number
                     'profit_benchmark': profit_in_benchmark,
                     'gold_cost': total_gold_cost,
-                    'efficiency': efficiency_per_mil,
+                    'efficiency': efficiency_per_mil, # Storing the Div/M value
                     'steps': log
                 })
-        print("-" * 60)
+            
+            # --- End of inner loop (scales) ---
+            
+            # Now, find the best result *for this path* among all scales tested
+            if not path_scale_results:
+                print(" [INFO] No valid scales simulated for this path.")
+                continue
+
+            # Find the scale with the highest efficiency
+            # We filter out non-positive efficiency first to handle potential float('inf') comparison issues if needed
+            profitable_scales = [res for res in path_scale_results if res['efficiency'] > 0]
+            
+            if profitable_scales:
+                best_result_for_path = max(profitable_scales, key=lambda x: x['efficiency'])
+                print(f" [SUCCESS] Best scale for path is {best_result_for_path['scale']*100:.0f}% with efficiency: {best_result_for_path['efficiency']:,.2f}")
+                ranked_loops.append(best_result_for_path)
+            else:
+                 # If no scale was profitable, check if any scale had zero profit (better than negative)
+                 zero_profit_scales = [res for res in path_scale_results if res['profit_benchmark'] == 0]
+                 if zero_profit_scales:
+                     # If some broke even, pick the one with lowest gold cost
+                     best_zero_result = min(zero_profit_scales, key=lambda x: x['gold_cost'])
+                     print(f" [INFO] Path broke even at best scale {best_zero_result['scale']*100:.0f}% (Gold: {best_zero_result['gold_cost']:,.0f}). Not adding to ranked list.")
+                 else:
+                     # If all scales lost money, pick the one with highest (least negative) profit
+                     worst_loss_result = max(path_scale_results, key=lambda x: x['profit_benchmark'])
+                     print(f" [INFO] Path was not profitable at any scale. Best loss was at {worst_loss_result['scale']*100:.0f}% ({worst_loss_result['profit_benchmark']:,.2f} DIV).")
+
+            print("-" * 60)
 
     # --- 5. Report & Save Results ---
     print("\n" + "="*80)
@@ -510,28 +613,30 @@ def run_analysis(scan_id):
         best_loop_data = ranked_loops[0]
 
         print("\n" + "!"*30 + " BEST LOOP FOUND " + "!"*30)
-        print(f"  Path:         {best_loop_data['path_string']}")
-        print(f"  Investment:   {best_loop_data['investment']:,} {best_loop_data['start_currency']}")
-        print(f"  Raw Profit:   {best_loop_data['profit']:+,} {best_loop_data['start_currency']}")
-        print(f"  Gold Cost:    {best_loop_data['gold_cost']:,.0f}")
+        print(f"  Path:         {best_loop_data['path_string']}")
+        print(f"  Best Scale:   {best_loop_data['scale']*100:.0f}% of available capital")
+        print(f"  Start Curr:   {best_loop_data['start_currency']}")
+        print(f"  Start Size:   {best_loop_data['investment']:,} (Raw units)")
+        print(f"  Invest (DIV): {best_loop_data['investment_benchmark']:,.2f} {BENCHMARK_CURRENCY}")
         print(f"  Profit (DIV): {best_loop_data['profit_benchmark']:,.4f} {BENCHMARK_CURRENCY}")
-        print(f"  Efficiency:   {best_loop_data['efficiency']:,.2f} (Div/M)")
+        print(f"  Gold Cost:    {best_loop_data['gold_cost']:,.0f}")
+        print(f"  Efficiency:   {best_loop_data['efficiency']:,.2f} (Div/M)")
         print("!"*80 + "\n")
 
-        # --- [ NEW LOGGING ] ---
+        # Log to CSV
         print(f" [INFO] Logging best loop to {OPPORTUNITY_LOG_FILE}...")
         log_header = [
             "timestamp", "scan_id", "path_string", "start_currency", 
-            "investment", "profit", "profit_benchmark", "gold_cost", "efficiency"
+            "investment_raw_units", "investment_benchmark", 
+            "profit_benchmark", "gold_cost", "efficiency", "scale"
         ]
         log_row = [
             ts, scan_id, best_loop_data['path_string'], best_loop_data['start_currency'],
-            best_loop_data['investment'], best_loop_data['profit'],
+            best_loop_data['investment'], best_loop_data['investment_benchmark'],
             best_loop_data['profit_benchmark'], best_loop_data['gold_cost'],
-            best_loop_data['efficiency']
+            best_loop_data['efficiency'], best_loop_data['scale']
         ]
         append_to_csv(OPPORTUNITY_LOG_FILE, log_header, log_row)
-        # --- [ END NEW LOGGING ] ---
 
     else:
         print("\n" + "-"*30 + " NO PROFITABLE LOOPS FOUND " + "-"*30 + "\n")
