@@ -547,7 +547,7 @@ def run_analysis(scan_id):
 
                 # Add the final result line to the log
                 efficiency_str = f"{efficiency_per_mil:,.2f}" if efficiency_per_mil != float('inf') else "inf"
-                result_line = f"  Result ({scale*100:.0f}%): {profit_in_benchmark:+,} {BENCHMARK_CURRENCY} profit (Gold: {total_gold_cost:,.0f}, {efficiency_str} DIV/1M gold)"
+                result_line = f"  Result ({scale*100:.0f}%): {profit_in_benchmark:,.2f} {BENCHMARK_CURRENCY} profit (Gold: {total_gold_cost/1000:.0f}K, {efficiency_str} DIV/1M gold)"
                 log.append(result_line)
                 
                 # Print log for this scale

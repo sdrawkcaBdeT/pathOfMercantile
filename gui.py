@@ -374,7 +374,7 @@ class WealthTrackerWindow(tk.Toplevel):
                 self.draw_text_list(["Wealth log is empty."])
                 return
             
-            last_10_rows = wealth_df.tail(70)
+            last_10_rows = wealth_df.tail(35)
             
             # Get currency columns (all columns except 'Timestamp')
             currency_columns = [col for col in last_10_rows.columns if col != 'Timestamp']
